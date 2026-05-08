@@ -6,7 +6,6 @@ This project collects VMware capacity metrics from vCenter and stores daily snap
 - Collector script: `capacityutilization.ps1`
 - DB schema and Timescale policies: `db/init_timescale.sql`
 - One-time DB initializer wrapper: `scripts/init-db.ps1`
-- Planning/implementation notes: `plan.md`
 
 ## 2. Metrics collected
 - Per host CPU and RAM capacity/allocation
