@@ -1,0 +1,967 @@
+﻿{
+    "__inputs":  [
+                     {
+                         "pluginId":  "grafana-postgresql-datasource",
+                         "name":  "DS_GRAFANA-POSTGRESQL-DATASOURCE",
+                         "description":  "",
+                         "type":  "datasource",
+                         "label":  "grafana-postgresql-datasource",
+                         "pluginName":  "PostgreSQL"
+                     }
+                 ],
+    "__elements":  {
+
+                   },
+    "__requires":  [
+                       {
+                           "name":  "Grafana",
+                           "id":  "grafana",
+                           "type":  "grafana",
+                           "version":  "12.4.0"
+                       },
+                       {
+                           "name":  "PostgreSQL",
+                           "id":  "grafana-postgresql-datasource",
+                           "type":  "datasource",
+                           "version":  "12.4.0"
+                       },
+                       {
+                           "name":  "Stat",
+                           "id":  "stat",
+                           "type":  "panel",
+                           "version":  ""
+                       },
+                       {
+                           "name":  "Time series",
+                           "id":  "timeseries",
+                           "type":  "panel",
+                           "version":  ""
+                       }
+                   ],
+    "annotations":  {
+                        "list":  [
+                                     {
+                                         "hide":  true,
+                                         "iconColor":  "rgba(0, 211, 255, 1)",
+                                         "builtIn":  1,
+                                         "datasource":  {
+                                                            "type":  "grafana",
+                                                            "uid":  "-- Grafana --"
+                                                        },
+                                         "type":  "dashboard",
+                                         "name":  "Annotations \u0026 Alerts",
+                                         "enable":  true
+                                     }
+                                 ]
+                    },
+    "editable":  true,
+    "fiscalYearStartMonth":  0,
+    "graphTooltip":  0,
+    "links":  [
+
+              ],
+    "panels":  [
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "none",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "center",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  1,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "decimals":  0,
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "orange"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "absolute"
+                                                                           },
+                                                            "unit":  "none"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027) SELECT coalesce(sum(total_allowed_vcpu),0) AS \"vCPU Capacity\" FROM cluster_capacity_metrics c JOIN latest l ON c.snapshot_ts_utc = l.ts WHERE c.vcenter_name = \u0027$vcenter\u0027;",
+                                           "format":  "table"
+                                       }
+                                   ],
+                       "title":  "Overview vCPU Capacity",
+                       "gridPos":  {
+                                       "y":  0,
+                                       "w":  6,
+                                       "x":  0,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "none",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "center",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  2,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "decimals":  0,
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  75,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  90,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "percentage"
+                                                                           },
+                                                            "unit":  "none"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027) SELECT coalesce(sum(total_allocated_vcpu),0) AS \"vCPU Used\" FROM cluster_capacity_metrics c JOIN latest l ON c.snapshot_ts_utc = l.ts WHERE c.vcenter_name = \u0027$vcenter\u0027;",
+                                           "format":  "table"
+                                       }
+                                   ],
+                       "title":  "Overview vCPU Used",
+                       "gridPos":  {
+                                       "y":  0,
+                                       "w":  6,
+                                       "x":  6,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "none",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "center",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  3,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "decimals":  2,
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "orange"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "absolute"
+                                                                           },
+                                                            "unit":  "decgbytes"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027) SELECT coalesce(sum(total_usable_ram_gb),0) AS \"Memory Capacity\" FROM cluster_capacity_metrics c JOIN latest l ON c.snapshot_ts_utc = l.ts WHERE c.vcenter_name = \u0027$vcenter\u0027;",
+                                           "format":  "table"
+                                       }
+                                   ],
+                       "title":  "Overview Memory Capacity (GB)",
+                       "gridPos":  {
+                                       "y":  0,
+                                       "w":  6,
+                                       "x":  12,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "none",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "center",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  4,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "decimals":  2,
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  75,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  90,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "percentage"
+                                                                           },
+                                                            "unit":  "decgbytes"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027) SELECT coalesce(sum(total_allocated_ram_gb),0) AS \"Memory Used\" FROM cluster_capacity_metrics c JOIN latest l ON c.snapshot_ts_utc = l.ts WHERE c.vcenter_name = \u0027$vcenter\u0027;",
+                                           "format":  "table"
+                                       }
+                                   ],
+                       "title":  "Overview Memory Used (GB)",
+                       "gridPos":  {
+                                       "y":  0,
+                                       "w":  6,
+                                       "x":  18,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "legend":  {
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true,
+                                                      "calcs":  [
+
+                                                                ],
+                                                      "displayMode":  "list"
+                                                  },
+                                       "tooltip":  {
+                                                       "sort":  "none",
+                                                       "hideZeros":  false,
+                                                       "mode":  "single"
+                                                   }
+                                   },
+                       "id":  5,
+                       "type":  "timeseries",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "none",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", sum(total_allowed_vcpu) AS \"vCPU Capacity\", sum(total_allocated_vcpu) AS \"vCPU Used\" FROM cluster_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 GROUP BY 1 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Overview vCPU Trend",
+                       "gridPos":  {
+                                       "y":  5,
+                                       "w":  12,
+                                       "x":  0,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "legend":  {
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true,
+                                                      "calcs":  [
+
+                                                                ],
+                                                      "displayMode":  "list"
+                                                  },
+                                       "tooltip":  {
+                                                       "sort":  "none",
+                                                       "hideZeros":  false,
+                                                       "mode":  "single"
+                                                   }
+                                   },
+                       "id":  6,
+                       "type":  "timeseries",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "decgbytes",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", sum(total_usable_ram_gb) AS \"Memory Capacity (GB)\", sum(total_allocated_ram_gb) AS \"Memory Used (GB)\" FROM cluster_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 GROUP BY 1 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Overview Memory Trend",
+                       "gridPos":  {
+                                       "y":  5,
+                                       "w":  12,
+                                       "x":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "area",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "auto",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  7,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  75,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  90,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "absolute"
+                                                                           },
+                                                            "unit":  "percent"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", cpu_used_pct AS \"Cluster CPU Used %\", ram_used_pct AS \"Cluster RAM Used %\" FROM cluster_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Cluster Utilization % (Selected Cluster)",
+                       "gridPos":  {
+                                       "y":  13,
+                                       "w":  12,
+                                       "x":  0,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "legend":  {
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true,
+                                                      "calcs":  [
+
+                                                                ],
+                                                      "displayMode":  "list"
+                                                  },
+                                       "tooltip":  {
+                                                       "sort":  "none",
+                                                       "hideZeros":  false,
+                                                       "mode":  "single"
+                                                   }
+                                   },
+                       "id":  8,
+                       "type":  "timeseries",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "none",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", total_allowed_vcpu AS \"Cluster vCPU Capacity\", total_allocated_vcpu AS \"Cluster vCPU Used\" FROM cluster_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       },
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", total_usable_ram_gb AS \"Cluster Memory Capacity (GB)\", total_allocated_ram_gb AS \"Cluster Memory Used (GB)\" FROM cluster_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Cluster Capacity vs Used (Selected Cluster)",
+                       "gridPos":  {
+                                       "y":  13,
+                                       "w":  12,
+                                       "x":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "area",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "auto",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  9,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  75,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  90,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ],
+                                                                               "mode":  "absolute"
+                                                                           },
+                                                            "unit":  "percent"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", cpu_used_pct AS \"Host CPU Used %\", ram_used_pct AS \"Host RAM Used %\" FROM host_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 AND compute_name = \u0027$host\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Host Utilization % (Selected Host)",
+                       "gridPos":  {
+                                       "y":  18,
+                                       "w":  12,
+                                       "x":  0,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "legend":  {
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true,
+                                                      "calcs":  [
+
+                                                                ],
+                                                      "displayMode":  "list"
+                                                  },
+                                       "tooltip":  {
+                                                       "sort":  "none",
+                                                       "hideZeros":  false,
+                                                       "mode":  "single"
+                                                   }
+                                   },
+                       "id":  10,
+                       "type":  "timeseries",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "none",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", allowed_vcpu AS \"Host vCPU Capacity\", allocated_vcpu AS \"Host vCPU Used\" FROM host_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 AND compute_name = \u0027$host\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       },
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", usable_ram_gb AS \"Host Memory Capacity (GB)\", allocated_ram_gb AS \"Host Memory Used (GB)\" FROM host_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 AND compute_name = \u0027$host\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Host Capacity vs Used (Selected Host)",
+                       "gridPos":  {
+                                       "y":  21,
+                                       "w":  12,
+                                       "x":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "values":  false,
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         },
+                                       "graphMode":  "none",
+                                       "percentChangeColorMode":  "standard",
+                                       "wideLayout":  true,
+                                       "justifyMode":  "center",
+                                       "textMode":  "auto",
+                                       "colorMode":  "value",
+                                       "showPercentChange":  false,
+                                       "orientation":  "auto"
+                                   },
+                       "id":  11,
+                       "type":  "stat",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "decbits",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM datastore_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027) SELECT coalesce(sum(capacity_tb),0) AS \"Datastore Capacity (TB)\", coalesce(sum(used_tb),0) AS \"Datastore Used (TB)\" FROM datastore_capacity_metrics d JOIN latest l ON d.snapshot_ts_utc = l.ts WHERE d.vcenter_name = \u0027$vcenter\u0027;",
+                                           "format":  "table"
+                                       }
+                                   ],
+                       "title":  "Datastore Summary (Latest)",
+                       "gridPos":  {
+                                       "y":  23,
+                                       "w":  12,
+                                       "x":  0,
+                                       "h":  5
+                                   }
+                   },
+                   {
+                       "options":  {
+                                       "legend":  {
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true,
+                                                      "calcs":  [
+
+                                                                ],
+                                                      "displayMode":  "list"
+                                                  },
+                                       "tooltip":  {
+                                                       "sort":  "none",
+                                                       "hideZeros":  false,
+                                                       "mode":  "single"
+                                                   }
+                                   },
+                       "id":  12,
+                       "type":  "timeseries",
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "datasource":  {
+                                          "type":  "grafana-postgresql-datasource",
+                                          "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                      },
+                       "pluginVersion":  "12.4.0",
+                       "targets":  [
+                                       {
+                                           "editorMode":  "code",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "grafana-postgresql-datasource",
+                                                              "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                          },
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT snapshot_ts_utc AS \"time\", used_pct AS \"Used %\" FROM datastore_capacity_metrics WHERE $__timeFilter(snapshot_ts_utc) AND vcenter_name = \u0027$vcenter\u0027 AND datastore_name = \u0027$datastore\u0027 ORDER BY 1;",
+                                           "format":  "time_series"
+                                       }
+                                   ],
+                       "title":  "Datastore Used % Trend (Selected Datastore)",
+                       "gridPos":  {
+                                       "y":  29,
+                                       "w":  12,
+                                       "x":  12,
+                                       "h":  8
+                                   }
+                   }
+               ],
+    "preload":  false,
+    "refresh":  "5m",
+    "schemaVersion":  42,
+    "tags":  [
+                 "vmware",
+                 "capacity",
+                 "timescaledb"
+             ],
+    "templating":  {
+                       "list":  [
+                                    {
+                                        "name":  "vcenter",
+                                        "options":  [
+
+                                                    ],
+                                        "type":  "query",
+                                        "includeAll":  false,
+                                        "definition":  "SELECT DISTINCT vcenter_name FROM cluster_capacity_metrics ORDER BY 1;",
+                                        "refresh":  1,
+                                        "datasource":  {
+                                                           "type":  "grafana-postgresql-datasource",
+                                                           "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                       },
+                                        "sort":  1,
+                                        "label":  "vCenter",
+                                        "query":  "SELECT DISTINCT vcenter_name FROM cluster_capacity_metrics ORDER BY 1;",
+                                        "current":  {
+
+                                                    },
+                                        "regex":  ""
+                                    },
+                                    {
+                                        "name":  "cluster",
+                                        "options":  [
+
+                                                    ],
+                                        "type":  "query",
+                                        "includeAll":  false,
+                                        "definition":  "SELECT DISTINCT cluster_name FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 ORDER BY 1;",
+                                        "refresh":  2,
+                                        "datasource":  {
+                                                           "type":  "grafana-postgresql-datasource",
+                                                           "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                       },
+                                        "sort":  1,
+                                        "label":  "Cluster",
+                                        "query":  "SELECT DISTINCT cluster_name FROM cluster_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 ORDER BY 1;",
+                                        "current":  {
+
+                                                    },
+                                        "regex":  ""
+                                    },
+                                    {
+                                        "name":  "host",
+                                        "options":  [
+
+                                                    ],
+                                        "type":  "query",
+                                        "includeAll":  false,
+                                        "definition":  "SELECT DISTINCT compute_name FROM host_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 ORDER BY 1;",
+                                        "refresh":  2,
+                                        "datasource":  {
+                                                           "type":  "grafana-postgresql-datasource",
+                                                           "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                       },
+                                        "sort":  1,
+                                        "label":  "Host",
+                                        "query":  "SELECT DISTINCT compute_name FROM host_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 AND cluster_name = \u0027$cluster\u0027 ORDER BY 1;",
+                                        "current":  {
+
+                                                    },
+                                        "regex":  ""
+                                    },
+                                    {
+                                        "name":  "datastore",
+                                        "options":  [
+
+                                                    ],
+                                        "type":  "query",
+                                        "includeAll":  false,
+                                        "definition":  "SELECT DISTINCT datastore_name FROM datastore_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 ORDER BY 1;",
+                                        "refresh":  2,
+                                        "datasource":  {
+                                                           "type":  "grafana-postgresql-datasource",
+                                                           "uid":  "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+                                                       },
+                                        "sort":  1,
+                                        "label":  "Datastore",
+                                        "query":  "SELECT DISTINCT datastore_name FROM datastore_capacity_metrics WHERE vcenter_name = \u0027$vcenter\u0027 ORDER BY 1;",
+                                        "current":  {
+
+                                                    },
+                                        "regex":  ""
+                                    }
+                                ]
+                   },
+    "time":  {
+                 "to":  "now",
+                 "from":  "now-30d"
+             },
+    "timepicker":  {
+
+                   },
+    "timezone":  "Asia/Kuala_Lumpur",
+    "title":  "VMware Capacity Overview",
+    "uid":  "vmware-capacity-overview",
+    "version":  1,
+    "weekStart":  ""
+}
