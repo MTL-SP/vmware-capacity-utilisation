@@ -107,26 +107,36 @@ printf '%s' 'vc_password_here' > /opt/vmware-capacity/secrets/vc_password.txt
 chmod 600 /opt/vmware-capacity/secrets/vc_password.txt
 ```
 
-## 6. Run the collector manually
+## 6. Create collector config file
+
+Copy `collector-config.sample.psd1` to your deployment path and update values:
+
+```bash
+cp ./collector-config.sample.psd1 /opt/vmware-capacity/collector-config.psd1
+```
+
+Keep passwords only in secret files and set those file paths in config.
+
+## 7. Run the collector manually
+
+```bash
+pwsh ./capacityutilization.ps1 -ConfigFile /opt/vmware-capacity/collector-config.psd1
+```
+
+Override any config value via CLI when needed (CLI wins):
 
 ```bash
 pwsh ./capacityutilization.ps1 \
-  -VCServer <vcenter-fqdn-or-ip> \
-  -VCUsername <vc-readonly-user> \
-  -VCPasswordFile /opt/vmware-capacity/secrets/vc_password.txt \
-  -PGHost <db-host> \
-  -PGPort 5432 \
-  -PGDatabase vmware_capacity \
-  -PGUsername vmware_collector \
-  -PGPasswordFile /opt/vmware-capacity/secrets/pg_password.txt \
-  -VCenterName <friendly-vcenter-name>
+  -ConfigFile /opt/vmware-capacity/collector-config.psd1 \
+  -VCenterName <friendly-vcenter-name> \
+  -RunId <id>
 ```
 
 Optional:
 - Add `-ShowConsoleSummary` if you want table output in logs.
 - Add `-RunId <id>` to control idempotency per run.
 
-## 7. Validate data landed in DB
+## 8. Validate data landed in DB
 
 ```sql
 SELECT run_id, status, started_at_utc, completed_at_utc, host_rows, cluster_rows, cluster_ha_rows, datastore_rows
@@ -145,12 +155,26 @@ SELECT count(*) FROM datastore_capacity_metrics;
 ## 8. Schedule daily run (cron example)
 
 ```cron
-0 1 * * * /usr/bin/pwsh /opt/vmware-capacity/capacityutilization.ps1 -VCServer <vcenter> -VCUsername <user> -VCPasswordFile /opt/vmware-capacity/secrets/vc_password.txt -PGHost <db-host> -PGPort 5432 -PGDatabase vmware_capacity -PGUsername vmware_collector -PGPasswordFile /opt/vmware-capacity/secrets/pg_password.txt -VCenterName <name> >> /var/log/vmware-capacity.log 2>&1
+0 1 * * * /usr/bin/pwsh /opt/vmware-capacity/capacityutilization.ps1 -ConfigFile /opt/vmware-capacity/collector-config.psd1 >> /var/log/vmware-capacity.log 2>&1
 ```
 
 Use your preferred scheduler if not using cron.
 
-## 9. Grafana setup
+## 9. Parameter precedence and rules
+
+- If both `-ConfigFile` and CLI values are provided, CLI values override config values.
+- Required values must be provided either by config or CLI:
+  - `VCServer`
+  - `VCUsername`
+  - `VCPasswordFile`
+  - `PGHost`
+  - `PGPort`
+  - `PGDatabase`
+  - `PGUsername`
+  - `PGPasswordFile`
+- `VCenterName` is optional and defaults to `VCServer`.
+
+## 10. Grafana setup
 
 ### 9.1 Add datasource
 - Type: PostgreSQL
@@ -169,7 +193,7 @@ Use your preferred scheduler if not using cron.
 - Data is stored in UTC (`snapshot_ts_utc`)
 - Set Grafana dashboard timezone to `Asia/Kuala_Lumpur` (UTC+8)
 
-## 10. Operational notes
+## 11. Operational notes
 - `scripts/init-db.ps1` is one-time or change-managed, not daily.
 - Daily jobs should run only `capacityutilization.ps1`.
 - Secret files must remain restricted (`600`).

@@ -1,19 +1,12 @@
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$VCServer,
-    [Parameter(Mandatory = $true)]
-    [string]$VCUsername,
-    [Parameter(Mandatory = $true)]
+    [string]$ConfigFile = "",
+    [string]$VCServer = "",
+    [string]$VCUsername = "",
     [string]$VCPasswordFile,
-    [Parameter(Mandatory = $true)]
-    [string]$PGHost,
-    [Parameter(Mandatory = $true)]
-    [int]$PGPort,
-    [Parameter(Mandatory = $true)]
-    [string]$PGDatabase,
-    [Parameter(Mandatory = $true)]
-    [string]$PGUsername,
-    [Parameter(Mandatory = $true)]
+    [string]$PGHost = "",
+    [Nullable[int]]$PGPort = $null,
+    [string]$PGDatabase = "",
+    [string]$PGUsername = "",
     [string]$PGPasswordFile,
     [string]$VCenterName = "",
     [string]$RunId = "",
@@ -34,6 +27,46 @@ function Read-SecretFile {
     }
 
     return (Get-Content -LiteralPath $Path -Raw).Trim()
+}
+
+function Resolve-ConfigValue {
+    param(
+        [hashtable]$Config,
+        [string]$Key,
+        $CurrentValue
+    )
+
+    if ($null -ne $CurrentValue) {
+        if ($CurrentValue -is [string]) {
+            if (-not [string]::IsNullOrWhiteSpace($CurrentValue)) {
+                return $CurrentValue
+            }
+        }
+        else {
+            return $CurrentValue
+        }
+    }
+
+    if ($Config -and $Config.ContainsKey($Key)) {
+        return $Config[$Key]
+    }
+
+    return $CurrentValue
+}
+
+function Validate-RequiredValue {
+    param(
+        [string]$Name,
+        $Value
+    )
+
+    if ($null -eq $Value) {
+        throw "Missing required setting: $Name. Provide it via -$Name or ConfigFile."
+    }
+
+    if ($Value -is [string] -and [string]::IsNullOrWhiteSpace($Value)) {
+        throw "Missing required setting: $Name. Provide it via -$Name or ConfigFile."
+    }
 }
 
 function ConvertTo-PgValue {
@@ -154,6 +187,36 @@ $clusterHAResults = @()
 $datastoreResults = @()
 
 try {
+    $collectorConfig = $null
+    if (-not [string]::IsNullOrWhiteSpace($ConfigFile)) {
+        if (-not (Test-Path -LiteralPath $ConfigFile)) {
+            throw "Config file not found: $ConfigFile"
+        }
+
+        $resolvedConfigFile = (Resolve-Path -LiteralPath $ConfigFile).Path
+        $collectorConfig = Import-PowerShellDataFile -LiteralPath $resolvedConfigFile
+    }
+
+    $VCServer = Resolve-ConfigValue -Config $collectorConfig -Key "VCServer" -CurrentValue $VCServer
+    $VCUsername = Resolve-ConfigValue -Config $collectorConfig -Key "VCUsername" -CurrentValue $VCUsername
+    $VCPasswordFile = Resolve-ConfigValue -Config $collectorConfig -Key "VCPasswordFile" -CurrentValue $VCPasswordFile
+    $PGHost = Resolve-ConfigValue -Config $collectorConfig -Key "PGHost" -CurrentValue $PGHost
+    $PGPort = Resolve-ConfigValue -Config $collectorConfig -Key "PGPort" -CurrentValue $PGPort
+    $PGDatabase = Resolve-ConfigValue -Config $collectorConfig -Key "PGDatabase" -CurrentValue $PGDatabase
+    $PGUsername = Resolve-ConfigValue -Config $collectorConfig -Key "PGUsername" -CurrentValue $PGUsername
+    $PGPasswordFile = Resolve-ConfigValue -Config $collectorConfig -Key "PGPasswordFile" -CurrentValue $PGPasswordFile
+    $VCenterName = Resolve-ConfigValue -Config $collectorConfig -Key "VCenterName" -CurrentValue $VCenterName
+
+    Validate-RequiredValue -Name "VCServer" -Value $VCServer
+    Validate-RequiredValue -Name "VCUsername" -Value $VCUsername
+    Validate-RequiredValue -Name "VCPasswordFile" -Value $VCPasswordFile
+    Validate-RequiredValue -Name "PGHost" -Value $PGHost
+    Validate-RequiredValue -Name "PGPort" -Value $PGPort
+    Validate-RequiredValue -Name "PGDatabase" -Value $PGDatabase
+    Validate-RequiredValue -Name "PGUsername" -Value $PGUsername
+    Validate-RequiredValue -Name "PGPasswordFile" -Value $PGPasswordFile
+    $PGPort = [int]$PGPort
+
     if (-not (Get-Module -ListAvailable -Name VMware.PowerCLI) -and -not (Get-Module -ListAvailable -Name VCF.PowerCLI)) {
         throw "PowerCLI module is not installed."
     }
