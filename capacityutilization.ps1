@@ -200,6 +200,7 @@ $datastoreResults = @()
 
 try {
     $runStartedUtc = (Get-Date).ToUniversalTime()
+    Write-Host ("[Run] Started UTC: {0}" -f $runStartedUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")) -ForegroundColor Cyan
     $configLoadedUtc = $null
     $dbRunMarkedUtc = $null
     $vcConnectedUtc = $null
@@ -243,10 +244,10 @@ try {
     $configLoadedUtc = (Get-Date).ToUniversalTime()
 
     if (Get-Module -ListAvailable -Name VCF.PowerCLI) {
-        Import-Module VCF.PowerCLI | Out-Null
+        Import-Module VCF.PowerCLI *> $null
     }
     else {
-        Import-Module VMware.PowerCLI | Out-Null
+        Import-Module VMware.PowerCLI *> $null
     }
 
     Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false | Out-Null
