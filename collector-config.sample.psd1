@@ -11,4 +11,8 @@
 
     # Optional. Defaults to VCServer if omitted.
     VCenterName = "Production-vCenter"
+
+    # Optional advisory threshold for future DB batching/COPY migration.
+    # If total rows collected in a run >= this value, the script logs a warning.
+    BatchingThresholdRows = 10000
 }

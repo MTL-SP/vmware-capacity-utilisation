@@ -11,6 +11,7 @@ param(
     [string]$VCenterName = "",
     [string]$RunId = "",
     [string]$ScriptVersion = "2.0.0",
+    [int]$BatchingThresholdRows = 10000,
     [switch]$ShowConsoleSummary
 )
 
@@ -177,6 +178,17 @@ function Build-InsertSql {
     return "INSERT INTO $TableName (" + ($Columns -join ", ") + ") VALUES " + ($valueRows -join ",`n") + " ON CONFLICT DO NOTHING;"
 }
 
+function Write-PhaseTiming {
+    param(
+        [string]$Phase,
+        [datetime]$StartUtc,
+        [datetime]$EndUtc
+    )
+
+    $seconds = [math]::Round((New-TimeSpan -Start $StartUtc -End $EndUtc).TotalSeconds, 2)
+    Write-Host ("[Timing] {0}: {1}s" -f $Phase, $seconds) -ForegroundColor Cyan
+}
+
 $viServer = $null
 $pgPassword = $null
 $status = "failed"
@@ -187,6 +199,13 @@ $clusterHAResults = @()
 $datastoreResults = @()
 
 try {
+    $runStartedUtc = (Get-Date).ToUniversalTime()
+    $configLoadedUtc = $null
+    $dbRunMarkedUtc = $null
+    $vcConnectedUtc = $null
+    $collectionCompletedUtc = $null
+    $dbWriteCompletedUtc = $null
+
     $collectorConfig = $null
     if (-not [string]::IsNullOrWhiteSpace($ConfigFile)) {
         if (-not (Test-Path -LiteralPath $ConfigFile)) {
@@ -206,6 +225,7 @@ try {
     $PGUsername = Resolve-ConfigValue -Config $collectorConfig -Key "PGUsername" -CurrentValue $PGUsername
     $PGPasswordFile = Resolve-ConfigValue -Config $collectorConfig -Key "PGPasswordFile" -CurrentValue $PGPasswordFile
     $VCenterName = Resolve-ConfigValue -Config $collectorConfig -Key "VCenterName" -CurrentValue $VCenterName
+    $BatchingThresholdRows = Resolve-ConfigValue -Config $collectorConfig -Key "BatchingThresholdRows" -CurrentValue $BatchingThresholdRows
 
     Validate-RequiredValue -Name "VCServer" -Value $VCServer
     Validate-RequiredValue -Name "VCUsername" -Value $VCUsername
@@ -220,6 +240,7 @@ try {
     if (-not (Get-Module -ListAvailable -Name VMware.PowerCLI) -and -not (Get-Module -ListAvailable -Name VCF.PowerCLI)) {
         throw "PowerCLI module is not installed."
     }
+    $configLoadedUtc = (Get-Date).ToUniversalTime()
 
     if (Get-Module -ListAvailable -Name VCF.PowerCLI) {
         Import-Module VCF.PowerCLI | Out-Null
@@ -263,8 +284,10 @@ SET vcenter_name = EXCLUDED.vcenter_name,
     error_message = NULL;
 "@
     Invoke-Psql -Sql $beginRunSql -Password $pgPassword
+    $dbRunMarkedUtc = (Get-Date).ToUniversalTime()
 
     $viServer = Connect-VIServer -Server $VCServer -Credential $credential
+    $vcConnectedUtc = (Get-Date).ToUniversalTime()
     Write-Host "`nConnected successfully to vCenter: $VCServer" -ForegroundColor Green
 
     $seenDatastoreIds = @{}
@@ -444,6 +467,7 @@ SET vcenter_name = EXCLUDED.vcenter_name,
             }
         }
     }
+    $collectionCompletedUtc = (Get-Date).ToUniversalTime()
 
     $hostCols = @(
         "snapshot_ts_utc","run_id","vcenter_name","script_version","cluster_name","compute_name","sockets",
@@ -493,6 +517,20 @@ WHERE run_id = $(ConvertTo-PgValue $RunId);
 
     $txSql = "BEGIN;`n" + ($insertSqlParts -join "`n") + "`n" + $updateRunSql + "`nCOMMIT;"
     Invoke-Psql -Sql $txSql -Password $pgPassword
+    $dbWriteCompletedUtc = (Get-Date).ToUniversalTime()
+
+    $totalRows = $hostResults.Count + $clusterResults.Count + $clusterHAResults.Count + $datastoreResults.Count
+    Write-Host ("[Rows] host={0}, cluster={1}, cluster_ha={2}, datastore={3}, total={4}" -f $hostResults.Count, $clusterResults.Count, $clusterHAResults.Count, $datastoreResults.Count, $totalRows) -ForegroundColor Cyan
+    if ($BatchingThresholdRows -gt 0 -and $totalRows -ge $BatchingThresholdRows) {
+        Write-Host ("[Advice] Total rows ({0}) reached threshold ({1}). Consider batched inserts or COPY staging for future runs." -f $totalRows, $BatchingThresholdRows) -ForegroundColor Yellow
+    }
+
+    Write-PhaseTiming -Phase "Config + validation" -StartUtc $runStartedUtc -EndUtc $configLoadedUtc
+    Write-PhaseTiming -Phase "Run row upsert" -StartUtc $configLoadedUtc -EndUtc $dbRunMarkedUtc
+    Write-PhaseTiming -Phase "vCenter connect" -StartUtc $dbRunMarkedUtc -EndUtc $vcConnectedUtc
+    Write-PhaseTiming -Phase "Metric collection" -StartUtc $vcConnectedUtc -EndUtc $collectionCompletedUtc
+    Write-PhaseTiming -Phase "DB writes + finalize" -StartUtc $collectionCompletedUtc -EndUtc $dbWriteCompletedUtc
+    Write-PhaseTiming -Phase "Total runtime" -StartUtc $runStartedUtc -EndUtc $dbWriteCompletedUtc
 
     if ($ShowConsoleSummary) {
         Write-Host "`n======================== Per Compute CPU Summary ========================" -ForegroundColor Green

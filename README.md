@@ -135,6 +135,7 @@ pwsh ./capacityutilization.ps1 \
 Optional:
 - Add `-ShowConsoleSummary` if you want table output in logs.
 - Add `-RunId <id>` to control idempotency per run.
+- Add `-BatchingThresholdRows <n>` to set when advisory batching warning appears (default `10000`).
 
 ## 8. Validate data landed in DB
 
@@ -198,3 +199,5 @@ Use your preferred scheduler if not using cron.
 - Daily jobs should run only `capacityutilization.ps1`.
 - Secret files must remain restricted (`600`).
 - If run fails, check `capacity_collection_runs.status` and `error_message`.
+- Collector logs per-phase timing with `[Timing] ...` lines for trend tracking.
+- Collector logs row totals with `[Rows] ...` and warns with `[Advice] ...` when row count reaches `BatchingThresholdRows`.
