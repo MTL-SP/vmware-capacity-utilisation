@@ -199,8 +199,9 @@ $clusterHAResults = @()
 $datastoreResults = @()
 
 try {
-    $runStartedUtc = (Get-Date).ToUniversalTime()
-    Write-Host ("[Run] Started UTC: {0}" -f $runStartedUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")) -ForegroundColor Cyan
+    $runStartedLocal = Get-Date
+    $runStartedUtc = $runStartedLocal.ToUniversalTime()
+    Write-Host ("[Run] Started Local: {0}" -f $runStartedLocal.ToString("yyyy-MM-ddTHH:mm:ssK")) -ForegroundColor Cyan
     $configLoadedUtc = $null
     $dbRunMarkedUtc = $null
     $vcConnectedUtc = $null
