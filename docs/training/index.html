@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Capacity Collector Academy — Support Team Onboarding</title>
+<meta name="description" content="Interactive crash course for the VMware Capacity Collector support team: what it is, how to run it, how to read the dashboards, and how to fix it when it sulks." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0F172A; --bg-2:#0B1220; --panel:#111c30; --panel-2:#16223a;
+    --line:#243044; --line-soft:#2e3c54;
+    --primary:#1E293B; --secondary:#334155;
+    --cta:#22C55E; --cta-2:#16a34a; --cta-glow:rgba(34,197,94,.35);
+    --text:#F8FAFC; --muted:#9fb0c7; --muted-2:#6b7c96;
+    --amber:#F59E0B; --orange:#FB923C; --red:#EF4444; --blue:#38BDF8; --violet:#A78BFA;
+    --line-soft:#1c2740;
+    --mono:'Fira Code',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Fira Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --r:16px; --r-sm:10px;
+    --shadow:0 18px 40px -20px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0; font-family:var(--sans); color:var(--text);
+    background:
+      radial-gradient(900px 600px at 85% -5%, rgba(34,197,94,.10), transparent 60%),
+      radial-gradient(800px 500px at 5% 10%, rgba(56,189,248,.08), transparent 55%),
+      var(--bg);
+    line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  a{color:inherit}
+  h1,h2,h3{line-height:1.15; margin:0; font-weight:700; letter-spacing:-.02em}
+  ::selection{background:var(--cta-glow); color:#fff}
+
+  /* ---------- scroll progress ---------- */
+  #progress{position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg,var(--cta),var(--blue)); z-index:90; transition:width .1s linear}
+
+  /* ---------- nav ---------- */
+  nav{position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    width:min(1100px,calc(100% - 28px)); z-index:80;
+    display:flex; align-items:center; gap:14px; padding:10px 14px;
+    background:rgba(17,28,48,.72); backdrop-filter:blur(14px);
+    border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow)}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; white-space:nowrap}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--cta);
+    box-shadow:0 0 12px var(--cta-glow); animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .navlinks{display:flex; gap:4px; margin-left:auto; overflow:auto; scrollbar-width:none}
+  .navlinks::-webkit-scrollbar{display:none}
+  .navlinks a{font-size:13px; color:var(--muted); text-decoration:none; padding:7px 11px;
+    border-radius:8px; white-space:nowrap; transition:color .2s,background .2s; cursor:pointer}
+  .navlinks a:hover{color:var(--text); background:var(--panel-2)}
+  .navlinks a.active{color:var(--cta); background:rgba(34,197,94,.10)}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1100px; margin:0 auto; padding:0 18px}
+  section{padding:84px 0; scroll-margin-top:92px}
+  .eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--cta); margin:0 0 14px; font-weight:600}
+  .lead{color:var(--muted); font-size:18px; max-width:62ch}
+  .sec-title{font-size:clamp(26px,4vw,38px)}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:150px 0 60px; text-align:center}
+  .hero h1{font-size:clamp(36px,6.5vw,68px); font-weight:800}
+  .hero h1 .g{background:linear-gradient(90deg,var(--cta),var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero p{margin:22px auto 0; max-width:60ch; font-size:clamp(16px,2.2vw,20px); color:var(--muted)}
+  .pill{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px;
+    color:var(--cta); border:1px solid var(--line); background:var(--panel);
+    padding:7px 13px; border-radius:999px; margin-bottom:26px}
+  .pill .live{width:8px;height:8px;border-radius:50%;background:var(--cta);
+    box-shadow:0 0 10px var(--cta-glow); animation:pulse 1.8s infinite}
+  .cta-row{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:34px}
+  .btn{display:inline-flex; align-items:center; gap:9px; font-family:var(--sans); font-weight:600;
+    font-size:15px; padding:13px 22px; border-radius:12px; cursor:pointer; border:1px solid transparent;
+    text-decoration:none; transition:transform .15s, box-shadow .2s, background .2s, border-color .2s}
+  .btn svg{width:18px;height:18px}
+  .btn-primary{background:var(--cta); color:#05210f; box-shadow:0 10px 26px -10px var(--cta-glow)}
+  .btn-primary:hover{background:#2ee36a; box-shadow:0 14px 30px -8px var(--cta-glow)}
+  .btn-ghost{background:var(--panel); color:var(--text); border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--cta); color:var(--cta)}
+  .btn:active{transform:translateY(1px)}
+
+  .stat-strip{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:46px}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-sm);
+    padding:14px 20px; min-width:130px}
+  .stat b{display:block; font-family:var(--mono); font-size:22px; color:var(--cta)}
+  .stat span{font-size:12.5px; color:var(--muted)}
+
+  /* ---------- flow diagram ---------- */
+  .flow{margin:54px auto 0; max-width:880px; background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:1px solid var(--line); border-radius:var(--r); padding:26px 20px; position:relative}
+  .flow-track{display:flex; align-items:stretch; gap:0; justify-content:space-between; flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px}
+  .node{flex:1 1 0; min-width:120px; text-align:center; padding:8px}
+  .node .box{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:16px 10px;
+    transition:border-color .25s, box-shadow .25s, transform .25s}
+  .node.lit .box{border-color:var(--cta); box-shadow:0 0 0 1px var(--cta), 0 0 26px -6px var(--cta-glow); transform:translateY(-3px)}
+  .node .ic{width:34px;height:34px;margin:0 auto 8px; color:var(--cta)}
+  .node h4{font-size:14px; margin:0}
+  .node small{font-size:11.5px; color:var(--muted-2); font-family:var(--mono)}
+  .arrow{align-self:center; flex:0 0 26px; color:var(--muted-2); position:relative}
+  .arrow svg{width:26px;height:18px}
+  .arrow.lit{color:var(--cta)}
+  .flow-cap{font-family:var(--mono); font-size:12.5px; color:var(--muted); text-align:center; margin-top:18px}
+
+  /* ---------- cards grid ---------- */
+  .grid{display:grid; gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r);
+    padding:22px; transition:border-color .2s, transform .2s, box-shadow .2s}
+  .card:hover{border-color:var(--line-soft)}
+  .tech{cursor:pointer; position:relative; overflow:hidden}
+  .tech:hover{transform:translateY(-4px); border-color:var(--cta); box-shadow:var(--shadow)}
+  .tech .ic{width:30px;height:30px;color:var(--cta); margin-bottom:12px}
+  .tech h3{font-size:18px; margin-bottom:6px}
+  .tech .role{font-size:13px; color:var(--muted-2); font-family:var(--mono); margin-bottom:10px}
+  .tech p{margin:0; color:var(--muted); font-size:14.5px}
+  .tech .more{max-height:0; opacity:0; overflow:hidden; transition:max-height .35s ease, opacity .3s, margin .3s; font-size:14px; color:var(--muted)}
+  .tech.open .more{max-height:200px; opacity:1; margin-top:12px}
+  .tech .tap{position:absolute; top:16px; right:16px; font-size:11px; font-family:var(--mono); color:var(--muted-2)}
+  .tech.open .tap{color:var(--cta)}
+
+  /* ---------- run simulator ---------- */
+  .sim{background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow)}
+  .sim-bar{display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--line); background:var(--panel)}
+  .sim-bar .tl{display:flex; gap:7px}
+  .sim-bar .tl i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .tl .r{background:#ff5f57}.tl .y{background:#febc2e}.tl .g{background:#28c840}
+  .sim-bar .path{font-family:var(--mono); font-size:12.5px; color:var(--muted-2); margin-left:6px}
+  .sim-bar .badge{margin-left:auto; font-family:var(--mono); font-size:12px; padding:5px 11px; border-radius:999px;
+    border:1px solid var(--line); color:var(--muted)}
+  .sim-bar .badge.running{color:var(--amber); border-color:var(--amber)}
+  .sim-bar .badge.success{color:var(--cta); border-color:var(--cta); background:rgba(34,197,94,.08)}
+  .sim-bar .badge.failed{color:var(--red); border-color:var(--red); background:rgba(239,68,68,.08)}
+  .console{font-family:var(--mono); font-size:13px; padding:18px; min-height:280px; max-height:340px; overflow:auto;
+    line-height:1.75}
+  .console .ln{opacity:0; transform:translateY(4px); animation:rise .25s forwards}
+  @keyframes rise{to{opacity:1; transform:none}}
+  .console .t{color:var(--blue)}      /* [Timing] */
+  .console .r{color:var(--cta)}       /* [Rows]   */
+  .console .a{color:var(--amber)}     /* [Advice] */
+  .console .run{color:var(--violet)}  /* [Run]    */
+  .console .ok{color:var(--cta)}
+  .console .err{color:var(--red)}
+  .console .dim{color:var(--muted-2)}
+  .console .cursor{display:inline-block;width:8px;height:15px;background:var(--cta);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .sim-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px}
+
+  /* ---------- threshold slider ---------- */
+  .gauge{display:grid; grid-template-columns:1.2fr 1fr; gap:26px; align-items:center}
+  .gauge .readout{text-align:center; border-radius:var(--r); padding:30px 18px; border:1px solid var(--line);
+    background:var(--panel); transition:background .3s, border-color .3s, box-shadow .3s}
+  .gauge .pct{font-family:var(--mono); font-size:58px; font-weight:700; line-height:1}
+  .gauge .status{font-size:20px; font-weight:700; margin-top:8px; letter-spacing:.01em}
+  .gauge .hint{font-size:13.5px; color:var(--muted); margin-top:8px; min-height:40px}
+  input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px;
+    background:linear-gradient(90deg,var(--cta) 0%,var(--cta) 75%,var(--amber) 75%,var(--amber) 90%,var(--orange) 90%,var(--orange) 100%);
+    outline:none; margin:22px 0 6px; cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:24px;height:24px;border-radius:50%;
+    background:#fff; border:4px solid var(--cta); cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.5); transition:border-color .2s}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--cta);cursor:pointer}
+  .ticks{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11.5px; color:var(--muted-2)}
+  .legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+  .legend span{font-size:12.5px; font-family:var(--mono); display:flex; align-items:center; gap:6px; color:var(--muted)}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  /* ---------- dashboard preview ---------- */
+  .dash{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:18px; box-shadow:var(--shadow)}
+  .dash .filters{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .chip{font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:9px; border:1px solid var(--line);
+    background:var(--bg); color:var(--muted); display:flex; align-items:center; gap:7px}
+  .chip b{color:var(--text); font-weight:600}
+  .chip svg{width:13px;height:13px;color:var(--muted-2)}
+  .panels{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  .panel{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .panel small{font-size:11px; color:var(--muted-2); font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em}
+  .panel .big{font-family:var(--mono); font-size:24px; font-weight:700; margin-top:6px}
+  .panel.wide{grid-column:span 2}
+  .spark{display:flex; align-items:flex-end; gap:4px; height:54px; margin-top:10px}
+  .spark i{flex:1; background:linear-gradient(180deg,var(--cta),rgba(34,197,94,.2)); border-radius:3px 3px 0 0; min-height:6px}
+  .spark.blue i{background:linear-gradient(180deg,var(--blue),rgba(56,189,248,.2))}
+
+  /* ---------- accordion ---------- */
+  .acc{border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden; margin-bottom:12px; background:var(--panel)}
+  .acc summary{list-style:none; cursor:pointer; padding:18px 20px; display:flex; align-items:center; gap:14px;
+    font-weight:600; transition:background .2s}
+  .acc summary::-webkit-details-marker{display:none}
+  .acc summary:hover{background:var(--panel-2)}
+  .acc .tag{font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:7px; flex:0 0 auto;
+    background:rgba(239,68,68,.12); color:#fca5a5; border:1px solid rgba(239,68,68,.3)}
+  .acc .chev{margin-left:auto; color:var(--muted-2); transition:transform .25s; flex:0 0 auto}
+  .acc[open] .chev{transform:rotate(180deg)}
+  .acc .body{padding:0 20px 20px 20px; color:var(--muted); font-size:14.5px}
+  .acc .body .fix{display:flex; gap:10px; align-items:flex-start; margin-top:12px; padding:13px 15px;
+    background:rgba(34,197,94,.07); border:1px solid rgba(34,197,94,.25); border-radius:10px; color:#bbf7d0}
+  .acc .body .fix svg{width:18px;height:18px;flex:0 0 auto;color:var(--cta);margin-top:1px}
+
+  /* ---------- code blocks ---------- */
+  .code{position:relative; background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r-sm);
+    margin:0 0 16px; overflow:hidden}
+  .code .head{display:flex; align-items:center; padding:9px 14px; border-bottom:1px solid var(--line); background:var(--panel)}
+  .code .head span{font-family:var(--mono); font-size:11.5px; color:var(--muted-2)}
+  .code pre{margin:0; padding:16px; overflow:auto; font-family:var(--mono); font-size:13px; color:#d7e1f0; line-height:1.7}
+  .code .kw{color:var(--violet)} .code .fn{color:var(--blue)} .code .st{color:var(--cta)} .code .cm{color:var(--muted-2)}
+  .copy{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); background:var(--bg);
+    border:1px solid var(--line); border-radius:7px; padding:5px 10px; cursor:pointer; transition:color .2s,border-color .2s}
+  .copy:hover{color:var(--cta); border-color:var(--cta)}
+  .copy.done{color:var(--cta); border-color:var(--cta)}
+
+  /* ---------- quiz ---------- */
+  .quiz{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:26px}
+  .q{margin-bottom:8px}
+  .q .qt{font-weight:600; font-size:16px; margin-bottom:14px; display:flex; gap:10px}
+  .q .qt span{font-family:var(--mono); color:var(--cta)}
+  .opts{display:grid; gap:9px}
+  .opt{text-align:left; font-family:var(--sans); font-size:14.5px; color:var(--text); background:var(--bg);
+    border:1px solid var(--line); border-radius:10px; padding:13px 16px; cursor:pointer;
+    transition:border-color .2s, background .2s; display:flex; align-items:center; gap:11px}
+  .opt:hover{border-color:var(--secondary)}
+  .opt .mk{width:20px;height:20px;border-radius:6px;border:1px solid var(--line-soft);flex:0 0 auto;display:grid;place-items:center}
+  .opt.correct{border-color:var(--cta); background:rgba(34,197,94,.10)}
+  .opt.correct .mk{background:var(--cta); border-color:var(--cta)}
+  .opt.wrong{border-color:var(--red); background:rgba(239,68,68,.09)}
+  .opt.wrong .mk{background:var(--red); border-color:var(--red)}
+  .opt .mk svg{width:13px;height:13px;color:#05210f;opacity:0}
+  .opt.correct .mk svg,.opt.wrong .mk svg{opacity:1}
+  .explain{font-size:13.5px; color:var(--muted); margin-top:12px; padding:12px 15px; border-left:3px solid var(--cta);
+    background:var(--bg); border-radius:0 8px 8px 0; display:none}
+  .explain.show{display:block; animation:rise .3s}
+  .score{text-align:center; font-family:var(--mono); margin-top:20px; font-size:15px; color:var(--muted)}
+  .score b{color:var(--cta); font-size:18px}
+
+  /* ---------- callouts ---------- */
+  .note{display:flex; gap:13px; align-items:flex-start; background:rgba(56,189,248,.07);
+    border:1px solid rgba(56,189,248,.28); border-radius:12px; padding:16px 18px; color:#cfeafe; font-size:14.5px; margin-top:20px}
+  .note svg{width:20px;height:20px;flex:0 0 auto;color:var(--blue);margin-top:1px}
+
+  /* ---------- setup: requirements ---------- */
+  .sub-h{font-size:20px; margin:40px 0 6px; display:flex; align-items:center; gap:10px}
+  .sub-h .n{font-family:var(--mono); font-size:13px; color:var(--cta); border:1px solid var(--line);
+    border-radius:8px; padding:3px 9px}
+  .req{display:flex; gap:13px; align-items:flex-start}
+  .req .ic{width:26px;height:26px;color:var(--cta);flex:0 0 auto;margin-top:2px}
+  .req h3{font-size:15.5px;margin:0 0 4px}
+  .req p{margin:0;color:var(--muted);font-size:13.5px}
+  .req .meta{font-family:var(--mono);font-size:11px;color:var(--muted-2);margin-top:8px;display:inline-block;
+    border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+
+  /* ---------- setup: stepper ---------- */
+  .tut{margin-top:24px}
+  .step{display:flex; gap:20px}
+  .step .rail{display:flex; flex-direction:column; align-items:center; flex:0 0 auto}
+  .step .num{width:40px;height:40px;border-radius:50%; display:grid;place-items:center;
+    font-family:var(--mono); font-weight:600; color:var(--cta); background:var(--panel);
+    border:1px solid var(--cta); box-shadow:0 0 18px -6px var(--cta-glow)}
+  .step .conn{flex:1; width:2px; background:linear-gradient(var(--cta),var(--line)); margin:6px 0; min-height:20px}
+  .step:last-child .conn{display:none}
+  .step .sbody{flex:1 1 auto; padding-bottom:26px; min-width:0}
+  .step h3{font-size:17px; margin-bottom:6px}
+  .step p{color:var(--muted); font-size:14px; margin:0 0 12px}
+
+  /* ---------- tabs (OS toggle) ---------- */
+  .tabbed .tabs{display:inline-flex; gap:4px; padding:4px; background:var(--bg); border:1px solid var(--line); border-radius:10px; margin-bottom:12px}
+  .tabbed .tab{font-family:var(--mono); font-size:12.5px; color:var(--muted); background:transparent; border:0; padding:7px 14px; border-radius:7px; cursor:pointer; transition:color .2s,background .2s}
+  .tabbed .tab.active{color:var(--cta); background:var(--panel)}
+  .tabbed .tab:hover{color:var(--text)}
+  .tabbed .panel{display:none}
+  .tabbed .panel.active{display:block}
+
+  /* ---------- schema explorer ---------- */
+  .db{display:grid; grid-template-columns:268px 1fr; gap:16px; margin-top:24px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--shadow)}
+  .db-list{display:flex; flex-direction:column; gap:7px}
+  .db-btn{display:flex; flex-direction:column; gap:3px; text-align:left; background:var(--bg); border:1px solid var(--line);
+    border-radius:10px; padding:11px 13px; cursor:pointer; transition:border-color .2s,background .2s}
+  .db-btn:hover{border-color:var(--secondary)}
+  .db-btn.active{border-color:var(--cta); background:rgba(34,197,94,.08)}
+  .db-btn .nm{font-family:var(--mono); font-size:12.5px; color:var(--text)}
+  .db-btn.active .nm{color:var(--cta)}
+  .db-btn .ds{font-size:11px; color:var(--muted-2)}
+  .db-panel{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:18px; min-width:0; overflow:auto}
+  .db-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px}
+  .db-head .tname{font-family:var(--mono); font-size:15px; color:var(--text); font-weight:600; margin-right:4px}
+  .b{font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:6px; border:1px solid var(--line); color:var(--muted)}
+  .b.ht{color:var(--blue); border-color:rgba(56,189,248,.4); background:rgba(56,189,248,.08)}
+  .b.pol{color:var(--violet); border-color:rgba(167,139,250,.4); background:rgba(167,139,250,.08)}
+  .cols{display:flex; flex-direction:column}
+  .col{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 4px; border-bottom:1px solid var(--line); font-size:13.5px}
+  .col:last-child{border-bottom:0}
+  .col .cn{font-family:var(--mono); color:var(--text)}
+  .col .cn.pk{color:var(--cta)}
+  .col .pkb{font-family:var(--mono); font-size:9.5px; color:var(--cta); border:1px solid rgba(34,197,94,.4); border-radius:5px; padding:1px 6px; margin-left:8px}
+  .col .ct{font-family:var(--mono); font-size:12px; color:var(--muted-2)}
+  .db-foot{font-size:12.5px; color:var(--muted); margin-top:14px; font-family:var(--mono); border-top:1px dashed var(--line); padding-top:12px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line); padding:40px 0 60px; color:var(--muted-2); font-size:13.5px; text-align:center}
+  footer .mono{font-family:var(--mono)}
+
+  /* ---------- reveal on scroll ---------- */
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .6s, transform .6s}
+  .reveal.in{opacity:1; transform:none}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1; transform:none; transition:none}
+    .console .ln{animation:none; opacity:1; transform:none}
+    .brand .dot,.pill .live{animation:none}
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .g3{grid-template-columns:1fr 1fr} .gauge{grid-template-columns:1fr}
+    .panels{grid-template-columns:1fr 1fr} .navlinks{display:none}
+    .db{grid-template-columns:1fr} .db-list{flex-direction:row; overflow:auto; padding-bottom:4px}
+    .db-list .db-btn{flex:0 0 auto}
+  }
+  @media (max-width:560px){
+    .g3,.g2,.panels{grid-template-columns:1fr} .panel.wide{grid-column:span 1}
+    section{padding:64px 0}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<nav>
+  <div class="brand"><span class="dot"></span> Capacity&nbsp;Collector&nbsp;Academy</div>
+  <div class="navlinks" id="navlinks">
+    <a href="#intro">Why</a>
+    <a href="#stack">Stack</a>
+    <a href="#flow">Flow</a>
+    <a href="#setup">Setup</a>
+    <a href="#run">Run it</a>
+    <a href="#status">Status</a>
+    <a href="#dash">Dashboards</a>
+    <a href="#fix">Troubleshoot</a>
+    <a href="#cheat">Cheat sheet</a>
+    <a href="#quiz">Quiz</a>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="pill"><span class="live"></span> v2.0.0 · running nightly in the test lab</span>
+  <h1>Meet the robot that<br><span class="g">counts your VMware capacity</span> while you sleep.</h1>
+  <p>Every night it peeks at vCenter, does the maths, and files a tidy snapshot into the database — so Grafana can tell you whether a cluster is cruising or quietly running out of room. Your job: keep it happy. This page gets you there in ~15 minutes.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#run"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run a fake collection</a>
+    <a class="btn btn-ghost" href="#intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Start from the top</a>
+  </div>
+  <div class="stat-strip">
+    <div class="stat"><b>1×</b><span>run = 1 snapshot</span></div>
+    <div class="stat"><b>4</b><span>metric groups</span></div>
+    <div class="stat"><b>24mo</b><span>kept, then auto-tidied</span></div>
+    <div class="stat"><b>UTC+8</b><span>shown in Grafana</span></div>
+  </div>
+
+  <!-- animated flow -->
+  <div class="flow reveal" id="flowDiagram">
+    <div class="flow-track">
+      <div class="node" data-i="0"><div class="box">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01"/></svg>
+        <h4>vCenter</h4><small>the source</small></div></div>
+      <div class="arrow" data-a="0"><svg viewBox="0 0 26 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 9h22M17 3l6 6-6 6"/></svg></div>
+      <div class="node" data-i="1"><div class="box">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+        <h4>The script</h4><small>.ps1 collector</small></div></div>
+      <div class="arrow" data-a="1"><svg viewBox="0 0 26 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 9h22M17 3l6 6-6 6"/></svg></div>
+      <div class="node" data-i="2"><div class="box">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
+        <h4>Postgres</h4><small>+ TimescaleDB</small></div></div>
+      <div class="arrow" data-a="2"><svg viewBox="0 0 26 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 9h22M17 3l6 6-6 6"/></svg></div>
+      <div class="node" data-i="3"><div class="box">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg>
+        <h4>Grafana</h4><small>the pretty charts</small></div></div>
+    </div>
+    <div class="flow-cap" id="flowCap">one run &nbsp;→&nbsp; one snapshot &nbsp;→&nbsp; one <span style="color:var(--cta)">run_id</span></div>
+  </div>
+</header>
+
+<main>
+
+<!-- WHY -->
+<section id="intro" class="wrap">
+  <p class="eyebrow reveal">// the point of all this</p>
+  <h2 class="sec-title reveal">vCenter shows <em>now</em>. We needed <em>over time</em>.</h2>
+  <p class="lead reveal" style="margin-top:16px">vCenter is great at telling you a cluster is 82% full <strong>right this second</strong>. It's hopeless at telling you it was 60% a month ago and climbing. So we snapshot capacity every night and keep the history — now "is this thing filling up?" is a chart, not a guess.</p>
+  <div class="grid g3" style="margin-top:30px">
+    <div class="card reveal"><h3 style="font-size:17px">📈 Capacity planning</h3><p style="color:var(--muted);font-size:14.5px;margin-top:8px">Spot a cluster trending toward full <em>before</em> it actually is.</p></div>
+    <div class="card reveal"><h3 style="font-size:17px">🔎 Incident context</h3><p style="color:var(--muted);font-size:14.5px;margin-top:8px">"Was this datastore already at 95% last week?" Now you can answer.</p></div>
+    <div class="card reveal"><h3 style="font-size:17px">📊 Reporting</h3><p style="color:var(--muted);font-size:14.5px;margin-top:8px">Historical % usage for management, without manual screenshots.</p></div>
+  </div>
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <div>It runs on a schedule, so most of your job is <strong>monitoring &amp; troubleshooting</strong> — not babysitting. The whole point is that it's boring when it's healthy.</div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack" class="wrap">
+  <p class="eyebrow reveal">// the cast of characters</p>
+  <h2 class="sec-title reveal">Six bits of tech, one job each</h2>
+  <p class="lead reveal" style="margin-top:14px">Tap a card to find out what it actually does for us.</p>
+  <div class="grid g3" style="margin-top:30px" id="techGrid">
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+      <h3>PowerShell 7</h3><div class="role">runs the show</div>
+      <p>Microsoft's modern scripting shell. Our collector is a single <code>.ps1</code> script it executes.</p>
+      <div class="more">Cross-platform, so the same script runs on Linux or Windows. No clicking required — it's built to run unattended.</div>
+    </div>
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M3 9h5"/></svg>
+      <h3>VMware PowerCLI</h3><div class="role">talks to vCenter</div>
+      <p>A PowerShell module full of VMware commands. Think "the vCenter API, in PowerShell."</p>
+      <div class="more">Logs in read-only and pulls host/cluster/datastore data via commands like <code>Connect-VIServer</code> and <code>Get-Cluster</code>. Either VMware.PowerCLI or VCF.PowerCLI works.</div>
+    </div>
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/></svg>
+      <h3>PostgreSQL</h3><div class="role">remembers everything</div>
+      <p>The database. Every snapshot lives here as rows in tables; we read it back with SQL.</p>
+      <div class="more">Five tables in total — one audit log plus four metric tables (host, cluster, cluster-HA, datastore).</div>
+    </div>
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <h3>TimescaleDB</h3><div class="role">time-travel mode</div>
+      <p>A Postgres add-on that makes time-stamped data fast — and tidies up after itself.</p>
+      <div class="more">Two automatic chores: <strong>retention</strong> deletes data older than 24 months, <strong>compression</strong> squashes data older than 30 days. You don't touch these.</div>
+    </div>
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg>
+      <h3>Grafana</h3><div class="role">draws the charts</div>
+      <p>The dashboard tool. It reads from Postgres and visualises trends — strictly read-only.</p>
+      <div class="more">Grafana never changes the data. If a chart looks wrong, the data is probably fine — check filters and time range first.</div>
+    </div>
+    <div class="card tech reveal" tabindex="0" role="button" aria-expanded="false">
+      <span class="tap">tap ⊕</span>
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>
+      <h3>psql</h3><div class="role">the delivery van</div>
+      <p>Postgres' command-line client. It's how the script actually writes rows into the database.</p>
+      <div class="more">Must be installed and on the <code>PATH</code> of the machine running the collector — a classic cause of "it won't write" failures.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW / lifecycle -->
+<section id="flow" class="wrap">
+  <p class="eyebrow reveal">// what one run looks like</p>
+  <h2 class="sec-title reveal">Six steps, one transaction</h2>
+  <p class="lead reveal" style="margin-top:14px">Every execution gets a unique <code>run_id</code> and is recorded in the audit table. Either the whole snapshot lands, or the run is marked failed — never anything half-written.</p>
+  <div class="grid g2" style="margin-top:28px">
+    <div class="card reveal"><div class="role" style="font-family:var(--mono);color:var(--cta);font-size:13px">STEP 1 → 3</div>
+      <h3 style="font-size:17px;margin:8px 0">Wake up &amp; collect</h3>
+      <p style="color:var(--muted);font-size:14.5px;margin:0">Load config &amp; validate → mark a new run <code>running</code> → connect to vCenter and walk every cluster, host and datastore, doing the capacity maths in memory.</p></div>
+    <div class="card reveal"><div class="role" style="font-family:var(--mono);color:var(--cta);font-size:13px">STEP 4 → 6</div>
+      <h3 style="font-size:17px;margin:8px 0">Write &amp; sign off</h3>
+      <p style="color:var(--muted);font-size:14.5px;margin:0">Write <strong>everything in one transaction</strong> → mark the run <code>success</code> with row counts. If anything trips, it's marked <code>failed</code> with a sanitised error message.</p></div>
+  </div>
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+    <div><strong>The <code>capacity_collection_runs</code> table is your morning coffee check.</strong> One row per run, with status and row counts. <code>success</code> = sleep well.</div>
+  </div>
+</section>
+
+<!-- SETUP / CONFIG -->
+<section id="setup" class="wrap">
+  <p class="eyebrow reveal">// zero to first snapshot</p>
+  <h2 class="sec-title reveal">Setup &amp; configuration tutorial</h2>
+  <p class="lead reveal" style="margin-top:14px">Here's the good news: this is a <strong>one-time</strong> job, and the test lab is already wired up. But you should know how it all came together — so if it ever needs rebuilding, you're not starting from a blank stare.</p>
+
+  <!-- prerequisites -->
+  <h2 class="sub-h reveal"><span class="n">01</span> The shopping list (prerequisites)</h2>
+  <p class="lead reveal" style="margin-top:6px;font-size:16px">Six things need to be in place before the collector can do anything useful.</p>
+  <div class="grid g3" style="margin-top:22px">
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+      <div><h3>PowerShell 7+</h3><p>The shell that runs the collector script.</p><span class="meta">pwsh --version</span></div>
+    </div>
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M3 9h5"/></svg>
+      <div><h3>VMware PowerCLI</h3><p>Either <code>VMware.PowerCLI</code> or <code>VCF.PowerCLI</code> installed.</p><span class="meta">Get-Module -ListAvailable</span></div>
+    </div>
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/></svg>
+      <div><h3>PostgreSQL + TimescaleDB</h3><p>A running Postgres with the Timescale extension available.</p><span class="meta">CREATE EXTENSION timescaledb</span></div>
+    </div>
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>
+      <div><h3>psql on the PATH</h3><p>The CLI the script writes rows through. Must be callable.</p><span class="meta">psql --version</span></div>
+    </div>
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div><h3>vCenter read-only account</h3><p>A least-privilege service account — read is all it needs.</p><span class="meta">svc-vcenter-readonly</span></div>
+    </div>
+    <div class="card req reveal">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
+      <div><h3>A Postgres app user</h3><p>Can create tables and insert data into the target DB.</p><span class="meta">vmware_collector</span></div>
+    </div>
+  </div>
+
+  <!-- DB configuration stepper -->
+  <h2 class="sub-h reveal"><span class="n">02</span> Wiring up the database</h2>
+  <p class="lead reveal" style="margin-top:6px;font-size:16px">Six steps, top to bottom. Copy each block as you go.</p>
+
+  <div class="tut">
+    <div class="step reveal">
+      <div class="rail"><div class="num">1</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Create the database</h3>
+        <p>As a Postgres admin, make a home for the data.</p>
+        <div class="code"><div class="head"><span>psql · as admin</span><button class="copy">copy</button></div>
+        <pre><span class="kw">CREATE DATABASE</span> vmware_capacity;</pre></div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">2</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Create the app user</h3>
+        <p>The collector logs in as this account. Restrict privileges further if your org requires it.</p>
+        <div class="code"><div class="head"><span>psql · as admin</span><button class="copy">copy</button></div>
+        <pre><span class="kw">CREATE USER</span> vmware_collector <span class="kw">WITH PASSWORD</span> <span class="st">'replace_me'</span>;
+<span class="kw">GRANT ALL PRIVILEGES ON DATABASE</span> vmware_capacity <span class="kw">TO</span> vmware_collector;</pre></div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">3</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Enable TimescaleDB</h3>
+        <p>Connected to the target DB, switch on the time-series superpowers. (If extensions are locked down, your DBA does this once.)</p>
+        <div class="code"><div class="head"><span>psql · in vmware_capacity</span><button class="copy">copy</button></div>
+        <pre><span class="kw">CREATE EXTENSION IF NOT EXISTS</span> timescaledb;</pre></div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">4</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Create the secret files</h3>
+        <p>Passwords live in files, never in config. One for the DB, one for vCenter — value only, locked down tight.</p>
+        <div class="tabbed">
+          <div class="tabs">
+            <button class="tab active" data-tab="lin">Linux</button>
+            <button class="tab" data-tab="win">Windows</button>
+          </div>
+          <div class="panel active" data-panel="lin">
+            <div class="code"><div class="head"><span>bash</span><button class="copy">copy</button></div>
+            <pre><span class="fn">mkdir</span> -p /opt/vmware-capacity/secrets
+<span class="fn">printf</span> <span class="st">'%s'</span> <span class="st">'pg_password'</span> > /opt/vmware-capacity/secrets/pg_password.txt
+<span class="fn">printf</span> <span class="st">'%s'</span> <span class="st">'vc_password'</span> > /opt/vmware-capacity/secrets/vc_password.txt
+<span class="fn">chmod</span> 600 /opt/vmware-capacity/secrets/*.txt</pre></div>
+          </div>
+          <div class="panel" data-panel="win">
+            <div class="code"><div class="head"><span>powershell</span><button class="copy">copy</button></div>
+            <pre><span class="fn">New-Item</span> -ItemType Directory -Force C:\vmware-capacity\secrets
+<span class="fn">Set-Content</span> -NoNewline C:\vmware-capacity\secrets\pg_password.txt <span class="st">'pg_password'</span>
+<span class="fn">Set-Content</span> -NoNewline C:\vmware-capacity\secrets\vc_password.txt <span class="st">'vc_password'</span>
+<span class="cm"># then restrict the folder to the run account with icacls</span></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">5</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Initialize the schema</h3>
+        <p>Run the bootstrap script <strong>once</strong>. It creates every table, hypertable, index, and the retention &amp; compression policies.</p>
+        <div class="code"><div class="head"><span>pwsh · one-time</span><button class="copy">copy</button></div>
+        <pre><span class="fn">pwsh</span> ./scripts/init-db.ps1 `
+  -PGHost db.example.local -PGPort 5432 `
+  -PGDatabase vmware_capacity `
+  -PGUsername vmware_collector `
+  -PGPasswordFile /opt/vmware-capacity/secrets/pg_password.txt</pre></div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">6</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Create the collector config</h3>
+        <p>Copy <code>collector-config.sample.psd1</code> and fill in your details. Notice the passwords are just <em>paths</em> — the values stay in the secret files.</p>
+        <div class="code"><div class="head"><span>collector-config.psd1</span><button class="copy">copy</button></div>
+        <pre>@{
+    VCServer       = <span class="st">"vcenter.example.local"</span>
+    VCUsername     = <span class="st">"svc-vcenter-readonly"</span>
+    VCPasswordFile = <span class="st">"/opt/vmware-capacity/secrets/vc_password.txt"</span>
+
+    PGHost         = <span class="st">"db.example.local"</span>
+    PGPort         = 5432
+    PGDatabase     = <span class="st">"vmware_capacity"</span>
+    PGUsername     = <span class="st">"vmware_collector"</span>
+    PGPasswordFile = <span class="st">"/opt/vmware-capacity/secrets/pg_password.txt"</span>
+
+    VCenterName    = <span class="st">"Production-vCenter"</span>   <span class="cm"># optional friendly name</span>
+    BatchingThresholdRows = 10000           <span class="cm"># advisory warning threshold</span>
+}</pre></div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="rail"><div class="num">7</div><div class="conn"></div></div>
+      <div class="sbody">
+        <h3>Schedule the nightly run</h3>
+        <p>This is what makes it <em>daily</em>. Point your scheduler at <code>capacityutilization.ps1</code> — the one-time <code>init-db.ps1</code> is <strong>never</strong> scheduled.</p>
+        <div class="tabbed">
+          <div class="tabs">
+            <button class="tab active" data-tab="cron">Linux · cron</button>
+            <button class="tab" data-tab="sched">Windows · Task Scheduler</button>
+          </div>
+          <div class="panel active" data-panel="cron">
+            <div class="code"><div class="head"><span>crontab -e · runs 01:00 daily</span><button class="copy">copy</button></div>
+            <pre><span class="cm"># m h dom mon dow   command</span>
+0 1 * * * /usr/bin/pwsh /opt/vmware-capacity/capacityutilization.ps1 `
+  -ConfigFile /opt/vmware-capacity/collector-config.psd1 `
+  >> /var/log/vmware-capacity.log 2>&1</pre></div>
+          </div>
+          <div class="panel" data-panel="sched">
+            <div class="code"><div class="head"><span>powershell · register a daily task</span><button class="copy">copy</button></div>
+            <pre><span class="kw">$action</span> = <span class="fn">New-ScheduledTaskAction</span> -Execute <span class="st">"pwsh.exe"</span> `
+  -Argument <span class="st">"-File C:\vmware-capacity\capacityutilization.ps1 -ConfigFile C:\vmware-capacity\collector-config.psd1"</span>
+<span class="kw">$trigger</span> = <span class="fn">New-ScheduledTaskTrigger</span> -Daily -At 1:00AM
+<span class="fn">Register-ScheduledTask</span> -TaskName <span class="st">"VMware Capacity Collector"</span> `
+  -Action <span class="kw">$action</span> -Trigger <span class="kw">$trigger</span> -RunLevel Highest -User <span class="st">"SYSTEM"</span></pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <div><strong>Step 5 is safe to re-run</strong> — everything uses <code>IF NOT EXISTS</code>. But treat it as change-managed, not a daily chore. The nightly job only ever runs <code>capacityutilization.ps1</code>.</div>
+  </div>
+
+  <!-- SCHEMA SNEAK PEEK -->
+  <h2 class="sub-h reveal"><span class="n">03</span> Sneak peek: the database schema</h2>
+  <p class="lead reveal" style="margin-top:6px;font-size:16px">Five tables: one audit log plus four metric tables. Click through to see the columns — <span style="color:var(--cta)">green = primary key</span>.</p>
+
+  <div class="db reveal" id="dbExplorer">
+    <div class="db-list"></div>
+    <div class="db-panel"></div>
+  </div>
+
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+    <div>The four metric tables are <strong>hypertables</strong> on <code>snapshot_ts_utc</code> — they auto-<strong>compress</strong> after 30 days and auto-<strong>delete</strong> after 24 months. Those composite primary keys are what make re-running a snapshot safe: same keys → no duplicates.</div>
+  </div>
+</section>
+
+<!-- RUN SIMULATOR -->
+<section id="run" class="wrap">
+  <p class="eyebrow reveal">// hands on, nothing breaks</p>
+  <h2 class="sec-title reveal">Run a (totally fake) collection</h2>
+  <p class="lead reveal" style="margin-top:14px">This is a safe simulation of what the real console looks like — same <code>[Run]</code>, <code>[Timing]</code>, <code>[Rows]</code> and <code>[Advice]</code> markers you'll learn to skim. Try a clean run, then watch one fail.</p>
+
+  <div class="sim reveal" style="margin-top:26px">
+    <div class="sim-bar">
+      <div class="tl"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <span class="path">pwsh ./capacityutilization.ps1 -ConfigFile collector-config.psd1</span>
+      <span class="badge" id="simBadge">idle</span>
+    </div>
+    <div class="console" id="console"><span class="dim">Press “Run” to start a simulated collection…</span><span class="cursor"></span></div>
+  </div>
+  <div class="sim-actions">
+    <button class="btn btn-primary" id="runOk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run (success)</button>
+    <button class="btn btn-ghost" id="runFail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Run (watch it fail)</button>
+  </div>
+
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <div>Seeing <code>cluster_ha=0</code>? That's <strong>normal</strong> — HA rows only appear for clusters using HA Admission Control with a "host failures tolerated" policy. Not a bug, don't raise a ticket.</div>
+  </div>
+</section>
+
+<!-- STATUS slider -->
+<section id="status" class="wrap">
+  <p class="eyebrow reveal">// learn the traffic lights</p>
+  <h2 class="sec-title reveal">From "all good" to "uh oh", on a slider</h2>
+  <p class="lead reveal" style="margin-top:14px">Every host, cluster and datastore gets a status from its <em>used %</em>. These same thresholds drive the colours in Grafana. Drag it around.</p>
+
+  <div class="card reveal" style="margin-top:26px">
+    <div class="gauge">
+      <div>
+        <input type="range" id="slider" min="0" max="120" value="42" aria-label="Used percentage" />
+        <div class="ticks"><span>0</span><span>75</span><span>90</span><span>100</span><span>120</span></div>
+        <div class="legend">
+          <span><i style="background:var(--cta)"></i> Healthy &lt;75</span>
+          <span><i style="background:var(--amber)"></i> Warning ≥75</span>
+          <span><i style="background:var(--orange)"></i> Critical ≥90</span>
+          <span><i style="background:var(--red)"></i> Overallocated ≥100</span>
+        </div>
+      </div>
+      <div class="readout" id="readout">
+        <div class="pct" id="pctVal">42%</div>
+        <div class="status" id="statusVal">Healthy</div>
+        <div class="hint" id="statusHint">Plenty of room. Nothing to see here.</div>
+      </div>
+    </div>
+  </div>
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <div>The numbers are <strong>usable capacity</strong>, not raw hardware — we reserve 4 cores + 16&nbsp;GB RAM per host and ignore powered-off/maintenance hosts and <code>vCLS</code> VMs. That's why they look lower than vCenter's headline figures. <em>By design.</em></div>
+  </div>
+</section>
+
+<!-- DASHBOARDS -->
+<section id="dash" class="wrap">
+  <p class="eyebrow reveal">// the part everyone actually opens</p>
+  <h2 class="sec-title reveal">Reading the Grafana dashboards</h2>
+  <p class="lead reveal" style="margin-top:14px">Pick a vCenter, then a cluster, then a host — the dropdowns cascade. Then drag the time range to zoom from "last 24h" to "last 90 days". Here's a mock of the Overview board:</p>
+
+  <div class="dash reveal" style="margin-top:26px">
+    <div class="filters">
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> vCenter: <b>Production-vCenter</b></div>
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> Cluster: <b>CLUSTER-01</b></div>
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> Host: <b>esxi-04</b></div>
+      <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> Datastore: <b>ds-gold</b></div>
+      <div class="chip" style="margin-left:auto;color:var(--cta);border-color:var(--cta)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Last 30 days · UTC+8</div>
+    </div>
+    <div class="panels">
+      <div class="panel"><small>vCPU Capacity</small><div class="big">3,840</div></div>
+      <div class="panel"><small>vCPU Used</small><div class="big" style="color:var(--amber)">81%</div></div>
+      <div class="panel"><small>Memory Capacity</small><div class="big">12 TB</div></div>
+      <div class="panel"><small>Memory Used</small><div class="big" style="color:var(--cta)">63%</div></div>
+      <div class="panel wide"><small>vCPU Trend</small><div class="spark" id="spark1"></div></div>
+      <div class="panel wide"><small>Memory Trend</small><div class="spark blue" id="spark2"></div></div>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card reveal"><h3 style="font-size:16px">Overview board</h3><p style="color:var(--muted);font-size:14px;margin-top:7px">Day-to-day. Pick one of everything and drill in.</p></div>
+    <div class="card reveal"><h3 style="font-size:16px">Repeated-panels board</h3><p style="color:var(--muted);font-size:14px;margin-top:7px">Compare many clusters/hosts/datastores side by side.</p></div>
+    <div class="card reveal"><h3 style="font-size:16px">Timezone gotcha</h3><p style="color:var(--muted);font-size:14px;margin-top:7px">Stored in UTC, shown in Asia/Kuala_Lumpur. "8h off" = a display setting, not bad data.</p></div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section id="fix" class="wrap">
+  <p class="eyebrow reveal">// when it sulks</p>
+  <h2 class="sec-title reveal">Troubleshooting, decoded</h2>
+  <p class="lead reveal" style="margin-top:14px">Always start the same way: check the run status, read the <code>error_message</code>, match it below. Click a row to reveal the fix.</p>
+
+  <div style="margin-top:26px">
+    <details class="acc reveal"><summary><span class="tag">Secret file not found</span> The script can't find a password file <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">Usually a path that moved or a typo.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Check the <code>VCPasswordFile</code> / <code>PGPasswordFile</code> paths in <code>collector-config.psd1</code>. The file should contain only the password.</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">PowerCLI not installed</span> "PowerCLI module is not installed." <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">The host is missing the VMware module.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Install <code>VMware.PowerCLI</code> or <code>VCF.PowerCLI</code> on the machine running the collector.</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">vCenter login failed</span> Connect-VIServer can't get in <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">Bad service-account creds, or vCenter is unreachable.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Verify the read-only service account and that vCenter is reachable from the host. If the password changed, update the secret file.</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">psql command failed</span> The database write didn't go through <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">DB unreachable, wrong DB creds, or <code>psql</code> isn't on the PATH.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Test DB connectivity and confirm <code>psql</code> is installed and on the PATH. Then just re-run.</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">stuck on “running”</span> An old run never finished <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">The process was killed mid-run.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Just re-run it. The single-transaction design means there's no half-written data to clean up. Re-running is always safe (it's idempotent).</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">no new run at all</span> Nothing showed up this morning <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">If there's <em>no</em> new row in <code>capacity_collection_runs</code>, the collector never started.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Suspect the <strong>scheduler</strong> first — cron (Linux) or Task Scheduler (Windows). The script can't fail if it never ran.</span></div></div></details>
+
+    <details class="acc reveal"><summary><span class="tag">dashboard empty</span> Grafana says "No data" <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="body">Often the time range is too narrow, or the datasource is off.<div class="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg><span>Widen the time range and confirm Grafana's PostgreSQL datasource is healthy. Remember the data is real only after a successful run.</span></div></div></details>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheat" class="wrap">
+  <p class="eyebrow reveal">// steal these</p>
+  <h2 class="sec-title reveal">Copy-paste cheat sheet</h2>
+  <p class="lead reveal" style="margin-top:14px">The four things you'll actually run. Hit copy.</p>
+
+  <div class="grid g2" style="margin-top:26px">
+    <div class="code reveal">
+      <div class="head"><span>run it manually</span><button class="copy">copy</button></div>
+      <pre>pwsh ./capacityutilization.ps1 `
+  -ConfigFile collector-config.psd1 `
+  -ShowConsoleSummary</pre>
+    </div>
+    <div class="code reveal">
+      <div class="head"><span>did last night work?</span><button class="copy">copy</button></div>
+      <pre><span class="kw">SELECT</span> run_id, status, started_at_utc,
+       host_rows, cluster_rows, datastore_rows
+<span class="kw">FROM</span> capacity_collection_runs
+<span class="kw">ORDER BY</span> started_at_utc <span class="kw">DESC</span> <span class="kw">LIMIT</span> 10;</pre>
+    </div>
+    <div class="code reveal">
+      <div class="head"><span>why did it fail?</span><button class="copy">copy</button></div>
+      <pre><span class="kw">SELECT</span> status, error_message, started_at_utc
+<span class="kw">FROM</span> capacity_collection_runs
+<span class="kw">WHERE</span> status = <span class="st">'failed'</span>
+<span class="kw">ORDER BY</span> started_at_utc <span class="kw">DESC</span> <span class="kw">LIMIT</span> 5;</pre>
+    </div>
+    <div class="code reveal">
+      <div class="head"><span>is there any data?</span><button class="copy">copy</button></div>
+      <pre><span class="kw">SELECT</span> count(*) <span class="kw">FROM</span> host_capacity_metrics;
+<span class="kw">SELECT</span> count(*) <span class="kw">FROM</span> cluster_capacity_metrics;
+<span class="kw">SELECT</span> count(*) <span class="kw">FROM</span> datastore_capacity_metrics;</pre>
+    </div>
+  </div>
+
+  <div class="card reveal" style="margin-top:18px">
+    <h3 style="font-size:17px;margin-bottom:14px">Morning health checklist</h3>
+    <div class="grid g2" style="gap:10px">
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> A new <code>success</code> row appeared</label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> Row counts look normal (not 0)</label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> Total runtime isn't ballooning</label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> Dashboards show fresh "last 24h" data</label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> Secret files intact (perms 600)</label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);cursor:pointer"><input type="checkbox" style="accent-color:var(--cta);width:17px;height:17px"> No unexplained <code>failed</code> runs</label>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="wrap">
+  <p class="eyebrow reveal">// prove it</p>
+  <h2 class="sec-title reveal">5-question gut check</h2>
+  <p class="lead reveal" style="margin-top:14px">No pressure. Pick an answer and it'll tell you why.</p>
+  <div class="quiz reveal" id="quiz" style="margin-top:26px"></div>
+  <div class="score" id="score">Answered 0 / 5</div>
+</section>
+
+</main>
+
+<footer>
+  <div class="mono">Capacity Collector Academy · built for the support team</div>
+  <div style="margin-top:8px">Full reference lives in <span class="mono" style="color:var(--cta)">docs/training/TRAINING.md</span> · slides in <span class="mono" style="color:var(--cta)">slides.md</span></div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* progress bar */
+  var prog = document.getElementById('progress');
+  function onScroll(){
+    var h = document.documentElement;
+    var p = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    prog.style.width = (p*100)+'%';
+  }
+  document.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  /* reveal on scroll */
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  /* nav active state */
+  var links = Array.prototype.slice.call(document.querySelectorAll('#navlinks a'));
+  var secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  var navIo = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        var id = '#'+e.target.id;
+        links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href')===id); });
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px'});
+  secs.forEach(function(s){ if(s) navIo.observe(s); });
+
+  /* flow diagram pulse */
+  var nodes = document.querySelectorAll('#flowDiagram .node');
+  var arrows = document.querySelectorAll('#flowDiagram .arrow');
+  var caps = ['vCenter hands over the raw numbers…','…the script crunches the capacity maths…','…and files the snapshot into Postgres…','…Grafana turns it into charts you actually read.'];
+  var capEl = document.getElementById('flowCap');
+  if(!reduce){
+    var fi = 0;
+    setInterval(function(){
+      nodes.forEach(function(n,i){ n.classList.toggle('lit', i===fi); });
+      arrows.forEach(function(a,i){ a.classList.toggle('lit', i===fi); });
+      capEl.textContent = caps[fi];
+      fi = (fi+1) % nodes.length;
+    }, 1400);
+  } else {
+    nodes.forEach(function(n){ n.classList.add('lit'); });
+  }
+
+  /* tech cards expand */
+  document.querySelectorAll('.tech').forEach(function(c){
+    function toggle(){ c.classList.toggle('open'); c.setAttribute('aria-expanded', c.classList.contains('open')); }
+    c.addEventListener('click', toggle);
+    c.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } });
+  });
+
+  /* sparklines */
+  function spark(el, seed){
+    if(!el) return; var html='';
+    for(var i=0;i<22;i++){
+      var v = 28 + Math.round(40*Math.abs(Math.sin(i*0.6+seed)) + (i*1.6));
+      v = Math.min(100, v);
+      html += '<i style="height:'+v+'%"></i>';
+    }
+    el.innerHTML = html;
+  }
+  spark(document.getElementById('spark1'), 1);
+  spark(document.getElementById('spark2'), 2.5);
+
+  /* ---------- run simulator ---------- */
+  var consoleEl = document.getElementById('console');
+  var badge = document.getElementById('simBadge');
+  var btnOk = document.getElementById('runOk');
+  var btnFail = document.getElementById('runFail');
+  var busy = false;
+
+  var okLines = [
+    ['run','[Run]    Started Local: 2026-06-09T01:00:00+08:00'],
+    ['dim','Connecting to vCenter (read-only)…'],
+    ['t','[Timing] Config + validation: 0.3s'],
+    ['t','[Timing] vCenter connect: 3.4s'],
+    ['dim','Walking clusters → hosts → datastores…'],
+    ['t','[Timing] Metric collection: 41.2s'],
+    ['dim','Writing everything in one transaction…'],
+    ['t','[Timing] DB writes + finalize: 2.1s'],
+    ['t','[Timing] Total runtime: 47.0s'],
+    ['r','[Rows]   host=120, cluster=8, cluster_ha=5, datastore=22, total=155'],
+    ['ok','✓ Run marked SUCCESS in capacity_collection_runs']
+  ];
+  var failLines = [
+    ['run','[Run]    Started Local: 2026-06-09T01:00:00+08:00'],
+    ['t','[Timing] Config + validation: 0.3s'],
+    ['dim','Connecting to vCenter (read-only)…'],
+    ['t','[Timing] vCenter connect: 3.1s'],
+    ['dim','Walking clusters → hosts → datastores…'],
+    ['t','[Timing] Metric collection: 39.8s'],
+    ['dim','Writing everything in one transaction…'],
+    ['err','psql: error: connection to server failed: timeout expired'],
+    ['err','Exception: psql command failed with exit code 2'],
+    ['err','✗ Run marked FAILED — error_message stored, no partial data written']
+  ];
+
+  function setBadge(state, text){ badge.className = 'badge '+state; badge.textContent = text; }
+
+  function play(lines, finalState, finalText){
+    if(busy) return; busy=true;
+    btnOk.disabled = btnFail.disabled = true;
+    consoleEl.innerHTML=''; setBadge('running','running…');
+    var i=0;
+    var step = reduce ? 0 : 360;
+    function next(){
+      if(i>=lines.length){
+        setBadge(finalState, finalText);
+        busy=false; btnOk.disabled=btnFail.disabled=false;
+        var cur=document.createElement('span'); cur.className='cursor'; consoleEl.appendChild(cur);
+        return;
+      }
+      var l = lines[i];
+      var div = document.createElement('div');
+      div.className='ln '+l[0];
+      div.textContent = l[1];
+      consoleEl.appendChild(div);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+      i++;
+      setTimeout(next, step);
+    }
+    next();
+  }
+  btnOk.addEventListener('click', function(){ play(okLines,'success','success'); });
+  btnFail.addEventListener('click', function(){ play(failLines,'failed','failed'); });
+
+  /* ---------- threshold slider ---------- */
+  var slider = document.getElementById('slider');
+  var pctVal = document.getElementById('pctVal');
+  var statusVal = document.getElementById('statusVal');
+  var statusHint = document.getElementById('statusHint');
+  var readout = document.getElementById('readout');
+  var states = [
+    {min:100, name:'Overallocated', col:'var(--red)', hint:'Over the line — more allocated than usable capacity. Time to act.'},
+    {min:90,  name:'Critical',      col:'var(--orange)', hint:'Cutting it fine. Headroom is nearly gone.'},
+    {min:75,  name:'Warning',       col:'var(--amber)', hint:'Keep an eye on this one — it\'s trending up.'},
+    {min:0,   name:'Healthy',       col:'var(--cta)', hint:'Plenty of room. Nothing to see here.'}
+  ];
+  function updateSlider(){
+    var v = parseInt(slider.value,10);
+    var s = states.find(function(x){ return v>=x.min; });
+    pctVal.textContent = v+'%';
+    pctVal.style.color = s.col;
+    statusVal.textContent = s.name;
+    statusVal.style.color = s.col;
+    statusHint.textContent = s.hint;
+    readout.style.borderColor = s.col;
+    readout.style.boxShadow = '0 0 30px -8px '+s.col;
+    slider.style.setProperty('--c', s.col);
+  }
+  slider.addEventListener('input', updateSlider); updateSlider();
+
+  /* ---------- copy buttons ---------- */
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('.code').querySelector('pre').innerText;
+      var done = function(){ btn.textContent='copied ✓'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent='copy'; btn.classList.remove('done'); },1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(done, done);
+      } else {
+        var ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); done();
+      }
+    });
+  });
+
+  /* ---------- quiz ---------- */
+  var questions = [
+    {q:'Where do you look first to check last night\'s run?',
+     opts:['The Grafana dashboard','The capacity_collection_runs table','The vCenter UI','The Windows event log'],
+     a:1, why:'capacity_collection_runs is the audit log — one row per run with status and counts. success = healthy.'},
+    {q:'cluster_ha_capacity_metrics has 0 rows. What now?',
+     opts:['Panic, raise a P1','Re-run the collector','Nothing — it\'s normal without an HA failover policy','Rebuild the database'],
+     a:2, why:'HA rows only appear for clusters using HA Admission Control with a host-failures-tolerated policy. Zero is expected otherwise.'},
+    {q:'A timestamp looks 8 hours off in Grafana. The cause?',
+     opts:['Corrupt data','The script\'s clock is wrong','Timezone display — UTC stored, UTC+8 shown','psql failed'],
+     a:2, why:'Data is stored in UTC and dashboards display Asia/Kuala_Lumpur. It\'s a display setting, not bad data.'},
+    {q:'A run is stuck on "running" from hours ago. Safe move?',
+     opts:['Just re-run it','Manually delete half the rows','Restart Postgres','Edit the table by hand'],
+     a:0, why:'Everything writes in one transaction, so there\'s no partial data. Re-running is always safe and idempotent.'},
+    {q:'No new run row appeared at all this morning. Suspect…',
+     opts:['vCenter','The scheduler (cron / Task Scheduler)','Grafana','TimescaleDB retention'],
+     a:1, why:'No row means the collector never started — that\'s a scheduling problem, not a script failure.'}
+  ];
+  var quizEl = document.getElementById('quiz');
+  var scoreEl = document.getElementById('score');
+  var answered = 0, correct = 0;
+  var check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-11"/></svg>';
+  questions.forEach(function(item, qi){
+    var wrap = document.createElement('div'); wrap.className='q';
+    var opts = item.opts.map(function(o,oi){
+      return '<button class="opt" data-q="'+qi+'" data-o="'+oi+'"><span class="mk">'+check+'</span>'+o+'</button>';
+    }).join('');
+    wrap.innerHTML = '<div class="qt"><span>Q'+(qi+1)+'</span> '+item.q+'</div><div class="opts">'+opts+'</div><div class="explain"></div>';
+    quizEl.appendChild(wrap);
+  });
+  quizEl.addEventListener('click', function(e){
+    var btn = e.target.closest('.opt'); if(!btn) return;
+    var qi = +btn.dataset.q, oi = +btn.dataset.o;
+    var wrap = btn.closest('.q');
+    if(wrap.dataset.done) return;
+    wrap.dataset.done = '1';
+    var item = questions[qi];
+    var btns = wrap.querySelectorAll('.opt');
+    btns.forEach(function(b){ b.disabled=true; var bo=+b.dataset.o;
+      if(bo===item.a) b.classList.add('correct');
+      else if(bo===oi) b.classList.add('wrong');
+    });
+    var exp = wrap.querySelector('.explain');
+    exp.textContent = (oi===item.a?'Spot on. ':'Not quite. ')+item.why;
+    exp.classList.add('show');
+    answered++; if(oi===item.a) correct++;
+    scoreEl.innerHTML = answered<questions.length
+      ? 'Answered '+answered+' / '+questions.length
+      : 'Done! You scored <b>'+correct+' / '+questions.length+'</b>'+(correct===questions.length?' — certified collector-wrangler. 🛠️':' — give the tricky bits another read.');
+  });
+
+  /* ---------- OS tabs ---------- */
+  document.querySelectorAll('.tabbed').forEach(function(t){
+    var tabs = t.querySelectorAll('.tab');
+    var panels = t.querySelectorAll('.panel');
+    t.addEventListener('click', function(e){
+      var b = e.target.closest('.tab'); if(!b) return;
+      var k = b.dataset.tab;
+      tabs.forEach(function(x){ x.classList.toggle('active', x===b); });
+      panels.forEach(function(p){ p.classList.toggle('active', p.dataset.panel===k); });
+    });
+  });
+
+  /* ---------- schema explorer ---------- */
+  var schema = [
+    {name:'capacity_collection_runs', desc:'audit log · 1 row per run', badges:[],
+      cols:[
+        ['run_id','TEXT',1],['vcenter_name','TEXT',0],['started_at_utc','TIMESTAMPTZ',0],
+        ['completed_at_utc','TIMESTAMPTZ',0],['snapshot_ts_utc','TIMESTAMPTZ',0],['status','TEXT',0],
+        ['script_version','TEXT',0],['host_rows','INT',0],['cluster_rows','INT',0],
+        ['cluster_ha_rows','INT',0],['datastore_rows','INT',0],['error_message','TEXT',0]
+      ],
+      foot:'Your morning check. status = running / success / failed.'},
+    {name:'host_capacity_metrics', desc:'per-host CPU & RAM', badges:[{label:'hypertable',cls:'ht'},{label:'compress >30d',cls:'pol'},{label:'retain 24mo',cls:'pol'}],
+      cols:[
+        ['snapshot_ts_utc','TIMESTAMPTZ',1],['run_id','TEXT',1],['cluster_name','TEXT',1],['compute_name','TEXT',1],
+        ['physical_cores','INT',0],['usable_cpu_cores','INT',0],['allowed_vcpu','NUMERIC',0],['allocated_vcpu','NUMERIC',0],
+        ['cpu_used_pct','NUMERIC',0],['cpu_status','TEXT',0],['usable_ram_gb','NUMERIC',0],['allocated_ram_gb','NUMERIC',0],
+        ['ram_used_pct','NUMERIC',0],['ram_status','TEXT',0],['powered_on_vm_count','INT',0]
+      ],
+      foot:'+ 10 more (sockets, reserved_*, available_*, overcommit_ratio…) · 25 columns total'},
+    {name:'cluster_capacity_metrics', desc:'per-cluster totals', badges:[{label:'hypertable',cls:'ht'},{label:'compress >30d',cls:'pol'},{label:'retain 24mo',cls:'pol'}],
+      cols:[
+        ['snapshot_ts_utc','TIMESTAMPTZ',1],['run_id','TEXT',1],['cluster_name','TEXT',1],
+        ['drs_enabled','BOOLEAN',0],['ha_enabled','BOOLEAN',0],['admission_control_enabled','BOOLEAN',0],
+        ['compute_count','INT',0],['total_allowed_vcpu','NUMERIC',0],['total_allocated_vcpu','NUMERIC',0],
+        ['cpu_used_pct','NUMERIC',0],['total_usable_ram_gb','NUMERIC',0],['total_allocated_ram_gb','NUMERIC',0],['ram_used_pct','NUMERIC',0]
+      ],
+      foot:'+ vcenter_name, script_version, total_available_vcpu/ram · 17 columns total'},
+    {name:'cluster_ha_capacity_metrics', desc:'HA-adjusted headroom', badges:[{label:'hypertable',cls:'ht'},{label:'compress >30d',cls:'pol'},{label:'retain 24mo',cls:'pol'}],
+      cols:[
+        ['snapshot_ts_utc','TIMESTAMPTZ',1],['run_id','TEXT',1],['cluster_name','TEXT',1],
+        ['host_failures_tolerated','INT',0],['total_allowed_vcpu','NUMERIC',0],['ha_reserved_vcpu','NUMERIC',0],
+        ['effective_vcpu','NUMERIC',0],['available_vcpu_after_ha','NUMERIC',0],['cpu_used_pct_after_ha','NUMERIC',0],
+        ['ha_reserved_ram_gb','NUMERIC',0],['effective_ram_gb','NUMERIC',0],['available_ram_after_ha','NUMERIC',0],['ram_used_pct_after_ha','NUMERIC',0]
+      ],
+      foot:'Only filled when HA admission control has a host-failures policy · 21 columns total'},
+    {name:'datastore_capacity_metrics', desc:'per-datastore usage', badges:[{label:'hypertable',cls:'ht'},{label:'compress >30d',cls:'pol'},{label:'retain 24mo',cls:'pol'}],
+      cols:[
+        ['snapshot_ts_utc','TIMESTAMPTZ',1],['run_id','TEXT',1],['datastore_id','TEXT',1],
+        ['datastore_name','TEXT',0],['type','TEXT',0],['capacity_tb','NUMERIC',0],['used_tb','NUMERIC',0],
+        ['free_tb','NUMERIC',0],['used_pct','NUMERIC',0],['status','TEXT',0]
+      ],
+      foot:'+ vcenter_name, script_version · 12 columns total'}
+  ];
+  var dbExp = document.getElementById('dbExplorer');
+  if(dbExp){
+    var dbList = dbExp.querySelector('.db-list');
+    var dbPanel = dbExp.querySelector('.db-panel');
+    function renderTable(idx){
+      var t = schema[idx];
+      var badges = t.badges.map(function(b){ return '<span class="b '+b.cls+'">'+b.label+'</span>'; }).join('');
+      var rows = t.cols.map(function(c){
+        return '<div class="col"><span class="cn'+(c[2]?' pk':'')+'">'+c[0]+(c[2]?'<span class="pkb">PK</span>':'')+'</span><span class="ct">'+c[1]+'</span></div>';
+      }).join('');
+      dbPanel.innerHTML = '<div class="db-head"><span class="tname">'+t.name+'</span>'+badges+'</div><div class="cols">'+rows+'</div><div class="db-foot">'+t.foot+'</div>';
+      dbList.querySelectorAll('.db-btn').forEach(function(b,i){ b.classList.toggle('active', i===idx); });
+    }
+    schema.forEach(function(t,i){
+      var btn = document.createElement('button');
+      btn.className = 'db-btn'; btn.type = 'button';
+      btn.innerHTML = '<span class="nm">'+t.name+'</span><span class="ds">'+t.desc+'</span>';
+      btn.addEventListener('click', function(){ renderTable(i); });
+      dbList.appendChild(btn);
+    });
+    renderTable(0);
+  }
+})();
+</script>
+</body>
+</html>
