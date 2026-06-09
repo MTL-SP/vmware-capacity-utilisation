@@ -722,7 +722,16 @@
   <h2 class="sec-title reveal">Reading the Grafana dashboards</h2>
   <p class="lead reveal" style="margin-top:14px">Pick a vCenter, then a cluster, then a host — the dropdowns cascade. Then drag the time range to zoom from "last 24h" to "last 90 days". Here's a mock of the Overview board:</p>
 
-  <div class="dash reveal" style="margin-top:26px">
+  <div class="cta-row reveal" style="justify-content:flex-start; margin-top:24px">
+    <a class="btn btn-primary" href="http://192.168.80.16:3000/d/cap0v/vmware-capacity-overview?orgId=1&amp;from=now-30d&amp;to=now&amp;timezone=Asia%2FKuala_Lumpur&amp;var-vcenter=vcenter.nimbus.testpod.lan&amp;var-cluster=testlab-cluster&amp;var-host=192.168.99.147&amp;var-datastore=DS-SOURCE&amp;refresh=5m" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg>
+      Open the live dashboard
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>
+    </a>
+    <span style="align-self:center; font-family:var(--mono); font-size:12.5px; color:var(--muted-2)">test lab · opens in a new tab</span>
+  </div>
+
+  <div class="dash reveal" style="margin-top:22px">
     <div class="filters">
       <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> vCenter: <b>Production-vCenter</b></div>
       <div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg> Cluster: <b>CLUSTER-01</b></div>
@@ -738,6 +747,11 @@
       <div class="panel wide"><small>vCPU Trend</small><div class="spark" id="spark1"></div></div>
       <div class="panel wide"><small>Memory Trend</small><div class="spark blue" id="spark2"></div></div>
     </div>
+  </div>
+
+  <div class="note reveal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <div>The live link points at the <strong>test-lab Grafana</strong> (<code>192.168.80.16:3000</code>) — you'll need to be on the lab network/VPN to reach it. It opens the Overview board pre-filtered to the test cluster, last 30 days, auto-refreshing every 5 min.</div>
   </div>
 
   <div class="grid g3" style="margin-top:18px">

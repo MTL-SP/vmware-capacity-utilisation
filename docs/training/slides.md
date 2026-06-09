@@ -382,6 +382,8 @@ So you can answer "why is this number lower than vCenter shows?":
 
 Both read live from PostgreSQL — no extra steps.
 
+**Live test-lab board:** [192.168.80.16:3000 → Capacity Overview](http://192.168.80.16:3000/d/cap0v/vmware-capacity-overview?orgId=1&from=now-30d&to=now&timezone=Asia%2FKuala_Lumpur&var-vcenter=vcenter.nimbus.testpod.lan&var-cluster=testlab-cluster&var-host=192.168.99.147&var-datastore=DS-SOURCE&refresh=5m) — *needs lab network/VPN.*
+
 ---
 
 # Overview dashboard — what's on it
