@@ -88,7 +88,9 @@ function Invoke-PsqlRows {
         if ($LASTEXITCODE -ne 0) {
             throw "psql command failed with exit code $LASTEXITCODE"
         }
-        return @($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        # The leading comma stops PowerShell unrolling a single-row result into a bare
+        # string, which would make $result[0] a [char] instead of the row.
+        return , @($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     }
     finally {
         Remove-Item -LiteralPath $sqlFile -Force -ErrorAction SilentlyContinue
