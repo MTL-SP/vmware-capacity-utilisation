@@ -20,6 +20,61 @@ the collector host. The dashboard gets a **Run capacity collection now** button:
 The button triggers a **read-only collection only**. No vMotion, no rebalancing, no
 privileged vCenter change - those stay manual human steps.
 
+### 1.1 How it works, in one paragraph
+
+Use this when someone asks how it was built:
+
+> A canvas element in Grafana runs an action that POSTs an `INSERT` to Grafana's own query
+> API, through a second datasource whose database role can only insert three columns into one
+> small request table - it can't read anything or touch the metric tables. A systemd timer on
+> the collector host wakes a PowerShell script every 60 seconds; it claims the oldest pending
+> request, collapses duplicates, declines if a run just happened or is still going, then runs
+> the existing collector unchanged with the request's id as its run id. When the collector
+> finishes, the watcher reads the outcome from the runs table and marks the request done or
+> failed, and the dashboard shows that transition. No new network port, no API service, and
+> the collector host only ever makes outbound connections to its local database.
+
+### 1.2 End to end
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Eng as Engineer
+    participant G as Grafana 12.2.0
+    participant DB as PostgreSQL on localhost
+    participant T as systemd timer
+    participant W as capacity-request-watcher.ps1
+    participant C as capacityutilization.ps1
+    participant VC as vCenter
+
+    Eng->>G: click element, confirm
+    G->>DB: POST /api/ds/query runs INSERT<br/>as grafana_trigger, 3 columns
+    Note over DB: status = pending<br/>set by column default
+    T->>W: fire one tick, every 60s
+    W->>DB: claim oldest pending row<br/>FOR UPDATE SKIP LOCKED
+    Note over W: supersede duplicates,<br/>debounce, in-flight guard
+    W->>C: pwsh -File ... -RunId request_id
+    C->>VC: read-only collection
+    C->>DB: metric rows + run row = success
+    W->>DB: request status = done
+    G->>DB: status panel and metric panels refresh
+```
+
+Two trust boundaries are worth pointing at on that diagram: step 2 is the only thing the
+dashboard can do to the database, and it is capped by the `grafana_trigger` grant; everything
+from step 4 onwards is the collector host talking outbound to its own local Postgres, with
+nothing listening.
+
+### 1.3 What not to claim about it
+
+- **Not restricted to specific people beyond dashboard permissions.** Anyone with Edit rights
+  on the dashboard can trigger a collection - that is the intended access control, enforced by
+  Grafana, not by the DB role.
+- **Not real time.** Worst case is ~60s of polling latency plus the collection itself.
+- **CORS is not one of the security controls.** On the correct origin the request is
+  same-origin and CORS never applies; a CORS error means Grafana is being browsed on the wrong
+  hostname (see section 6).
+
 ## 2. New DB objects, roles and grants
 
 `db/add_manual_trigger.sql` (additive, idempotent, re-runnable, touches nothing created by
