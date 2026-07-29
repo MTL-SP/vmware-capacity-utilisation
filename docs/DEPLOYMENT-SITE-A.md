@@ -222,7 +222,7 @@ Confirm nothing new is listening:
 ss -ltn | diff /root/listeners-before-manual-trigger.txt - && echo "no new listener"
 ```
 
-`Type=oneshot` plus `OnUnitActiveSec=30` means systemd never overlaps ticks;
+`Type=oneshot` plus `OnUnitActiveSec=60` means systemd never overlaps ticks;
 `flock -n /run/lock/vmware-capacity-watcher.lock` covers a manual run landing on a timer tick.
 
 ---
@@ -279,7 +279,7 @@ but get no action.
 
 1. **Single click.** Click the green **Run capacity collection now** button, confirm the modal.
    A new `pending` row appears with `requested_by` = your Grafana login. Watch the status panel
-   go `pending → claimed → done` within roughly 30–60 seconds plus collection time.
+   go `pending → claimed → done` within roughly a minute plus collection time.
 
    ```bash
    journalctl -u vmware-capacity-watcher.service -f

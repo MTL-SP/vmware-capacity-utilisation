@@ -3,7 +3,7 @@ One tick of the manual capacity-refresh watcher.
 
 Claims the oldest pending row in capacity_run_requests, runs the existing collector for it,
 then marks the row done/failed. Outbound Postgres connection only - no listener, no API.
-Driven by deploy/vmware-capacity-watcher.timer (~30s). See README section 13.
+Driven by deploy/vmware-capacity-watcher.timer (~60s). See README section 13.
 #>
 param(
     [Parameter(Mandatory = $true)]
@@ -156,7 +156,7 @@ RETURNING request_id::text, coalesce(requested_by, '');
 "@
     $claimed = Invoke-PsqlRows -Sql $claimSql
 
-    # 2. Nothing pending: exit quietly (this is the common case, every ~30s).
+    # 2. Nothing pending: exit quietly (this is the common case, every ~60s).
     if ($claimed.Count -eq 0) {
         exit 0
     }

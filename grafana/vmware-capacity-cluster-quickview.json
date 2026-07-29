@@ -173,7 +173,7 @@
                   "type": "fetch",
                   "title": "Run capacity collection now",
                   "oneClick": true,
-                  "confirmation": "Queue a fresh VMware capacity collection now? This runs a read-only vCenter collection (no vMotion, no changes). The collector host picks the request up within about 30 seconds.",
+                  "confirmation": "Queue a fresh VMware capacity collection now? This runs a read-only vCenter collection (no vMotion, no changes). The collector host picks the request up within about a minute.",
                   "fetch": {
                     "method": "POST",
                     "url": "/api/ds/query",

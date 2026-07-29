@@ -11,7 +11,7 @@ the collector host. The dashboard gets a **Run capacity collection now** button:
 
 1. The button inserts a `pending` row into `capacity_run_requests` through a second,
    write-scoped Grafana datasource.
-2. `scripts/capacity-request-watcher.ps1`, fired by a systemd timer every ~30s on the
+2. `scripts/capacity-request-watcher.ps1`, fired by a systemd timer every ~60s on the
    collector host, claims the row and runs the existing `capacityutilization.ps1` with
    `-RunId <request_id>`.
 3. The **Latest Manual Refresh Request** panel shows `pending -> claimed -> done`, after
@@ -109,7 +109,7 @@ systemctl list-timers vmware-capacity-watcher.timer
 journalctl -u vmware-capacity-watcher.service -f
 ```
 
-`Type=oneshot` + `OnUnitActiveSec=30` means systemd never starts a tick while the previous
+`Type=oneshot` + `OnUnitActiveSec=60` means systemd never starts a tick while the previous
 one is still running; `flock -n /run/lock/vmware-capacity-watcher.lock` in `ExecStart` covers
 a stray manual invocation on top of that. The watcher makes **outbound localhost Postgres
 connections only** - it opens no port and runs no service of its own.

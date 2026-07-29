@@ -1,9 +1,11 @@
 [Unit]
-Description=Poll capacity_run_requests for manual refresh requests every 30s
+Description=Poll capacity_run_requests for manual refresh requests every 60s
 
 [Timer]
 OnBootSec=60
-OnUnitActiveSec=30
+# Each idle tick costs ~2s CPU just to start pwsh, so 60s keeps the steady-state cost
+# near 3% of a core. Drop to 30 if faster pickup matters more than idle CPU.
+OnUnitActiveSec=60
 AccuracySec=1s
 Unit=vmware-capacity-watcher.service
 
