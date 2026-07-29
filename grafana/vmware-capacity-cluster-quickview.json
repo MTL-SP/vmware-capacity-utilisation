@@ -1,0 +1,1214 @@
+{
+  "__inputs": [
+    {
+      "pluginId": "grafana-postgresql-datasource",
+      "name": "DS_GRAFANA-POSTGRESQL-DATASOURCE",
+      "description": "",
+      "type": "datasource",
+      "label": "grafana-postgresql-datasource",
+      "pluginName": "PostgreSQL"
+    },
+    {
+      "pluginId": "grafana-postgresql-datasource",
+      "name": "DS_CAPACITY_TRIGGER",
+      "description": "Write-scoped PostgreSQL datasource connecting as the grafana_trigger role. Used only by the 'Run capacity collection now' button.",
+      "type": "datasource",
+      "label": "capacity-trigger (write-scoped)",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "name": "Grafana",
+      "id": "grafana",
+      "type": "grafana",
+      "version": "12.2.0"
+    },
+    {
+      "name": "PostgreSQL",
+      "id": "grafana-postgresql-datasource",
+      "type": "datasource",
+      "version": "12.2.0"
+    },
+    {
+      "name": "Canvas",
+      "id": "canvas",
+      "type": "panel",
+      "version": ""
+    },
+    {
+      "name": "Stat",
+      "id": "stat",
+      "type": "panel",
+      "version": ""
+    },
+    {
+      "name": "Table",
+      "id": "table",
+      "type": "panel",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "type": "dashboard",
+        "name": "Annotations & Alerts",
+        "enable": true
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Manual Capacity Refresh",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "canvas",
+      "title": "Run capacity collection now",
+      "description": "Click the button and confirm to queue an on-demand collection. It inserts a pending row into capacity_run_requests through the write-scoped datasource; the watcher on the collector host runs capacityutilization.ps1 and the panels above refresh once it reports done. Read-only collection - it never performs vMotion. Requires Edit permission on this dashboard.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 9,
+        "h": 5
+      },
+      "options": {
+        "inlineEditing": true,
+        "showAdvancedTypes": true,
+        "panZoom": false,
+        "infinitePan": false,
+        "root": {
+          "type": "frame",
+          "name": "Element 1",
+          "constraint": {
+            "horizontal": "left",
+            "vertical": "top"
+          },
+          "placement": {
+            "top": 0,
+            "left": 0,
+            "width": 100,
+            "height": 100,
+            "rotation": 0
+          },
+          "background": {
+            "color": {
+              "fixed": "transparent"
+            }
+          },
+          "border": {
+            "color": {
+              "fixed": "transparent"
+            }
+          },
+          "elements": [
+            {
+              "type": "rectangle",
+              "name": "Run capacity collection now",
+              "config": {
+                "align": "center",
+                "valign": "middle",
+                "color": {
+                  "fixed": "#FFFFFF"
+                },
+                "size": 16,
+                "text": {
+                  "mode": "fixed",
+                  "fixed": "\u25b6  Run capacity collection now"
+                }
+              },
+              "background": {
+                "color": {
+                  "fixed": "dark-green"
+                }
+              },
+              "border": {
+                "color": {
+                  "fixed": "transparent"
+                },
+                "width": 0
+              },
+              "constraint": {
+                "horizontal": "left",
+                "vertical": "top"
+              },
+              "placement": {
+                "top": 16,
+                "left": 16,
+                "width": 300,
+                "height": 52,
+                "rotation": 0
+              },
+              "links": [],
+              "actions": [
+                {
+                  "type": "fetch",
+                  "title": "Run capacity collection now",
+                  "oneClick": true,
+                  "confirmation": "Queue a fresh VMware capacity collection now? This runs a read-only vCenter collection (no vMotion, no changes). The collector host picks the request up within about 30 seconds.",
+                  "fetch": {
+                    "method": "POST",
+                    "url": "/api/ds/query",
+                    "headers": [
+                      [
+                        "Content-Type",
+                        "application/json"
+                      ]
+                    ],
+                    "body": "{\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"grafana-postgresql-datasource\",\"uid\":\"${DS_CAPACITY_TRIGGER}\"},\"rawQuery\":true,\"rawSql\":\"INSERT INTO capacity_run_requests (requested_by, note) VALUES ('${__user.login}', 'Manual refresh from Grafana dashboard')\",\"format\":\"table\"}],\"from\":\"now-5m\",\"to\":\"now\"}"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT 1 AS ok;",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Latest Manual Refresh Request",
+      "description": "pending -> claimed -> done. 'superseded' means a duplicate or debounced click; 'failed' means the collector errored - check capacity_collection_runs.error_message for that run_id.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 9,
+        "y": 1,
+        "w": 15,
+        "h": 5
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": false
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "pending": {
+                        "color": "blue",
+                        "index": 0
+                      },
+                      "claimed": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "done": {
+                        "color": "green",
+                        "index": 2
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 3
+                      },
+                      "superseded": {
+                        "color": "text",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT requested_at_utc AS \"Requested\", requested_by AS \"Requested By\", status AS \"Status\", completed_at_utc AS \"Completed\", run_id AS \"Run ID\" FROM capacity_run_requests ORDER BY requested_at_utc DESC LIMIT 1;",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Cluster: $cluster",
+      "collapsed": false,
+      "repeat": "cluster",
+      "repeatDirection": "h",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "$cluster \u2013 CPU Cores Capacity",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "percentChangeColorMode": "standard",
+        "wideLayout": true,
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "colorMode": "background_solid",
+        "showPercentChange": false,
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Usable Cores"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Overcommit vCPU"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM host_capacity_metrics) SELECT sum(usable_cpu_cores) AS \"Usable Cores\", sum(allowed_vcpu) AS \"Overcommit vCPU\" FROM host_capacity_metrics h JOIN latest l ON h.snapshot_ts_utc = l.ts WHERE h.cluster_name = '$cluster';",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "$cluster \u2013 Memory Capacity",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "percentChangeColorMode": "standard",
+        "wideLayout": true,
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "colorMode": "background_solid",
+        "showPercentChange": false,
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Usable Memory (GB)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Allocated Memory (GB)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM host_capacity_metrics) SELECT sum(usable_ram_gb) AS \"Usable Memory (GB)\", sum(allocated_ram_gb) AS \"Allocated Memory (GB)\" FROM host_capacity_metrics h JOIN latest l ON h.snapshot_ts_utc = l.ts WHERE h.cluster_name = '$cluster';",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Per-Compute & Datastore Detail",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Per Compute CPU Summary",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 11
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "CPU Used %",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "green"
+                    },
+                    {
+                      "value": 75,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 90,
+                      "color": "red"
+                    },
+                    {
+                      "value": 100,
+                      "color": "dark-red"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Healthy": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 2
+                      },
+                      "Overallocated": {
+                        "color": "dark-red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Allowed vCPU"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Allocated vCPU"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available vCPU"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM host_capacity_metrics) SELECT h.cluster_name AS \"Cluster\", h.compute_name AS \"Compute\", h.physical_cores AS \"Physical Cores\", h.reserved_cores AS \"Reserved Cores\", h.usable_cpu_cores AS \"Usable Cores\", h.overcommit_ratio AS \"Overcommit\", h.allowed_vcpu AS \"Allowed vCPU\", h.allocated_vcpu AS \"Allocated vCPU\", h.available_vcpu AS \"Available vCPU\", h.cpu_used_pct AS \"CPU Used %\", h.cpu_status AS \"CPU Status\", h.powered_on_vm_count AS \"Powered-On VMs\" FROM host_capacity_metrics h JOIN latest l ON h.snapshot_ts_utc = l.ts WHERE h.cluster_name IN (${cluster:sqlstring}) ORDER BY h.cluster_name, h.compute_name;",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Per Compute RAM Summary",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 11
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "RAM Used %",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RAM Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "green"
+                    },
+                    {
+                      "value": 75,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 90,
+                      "color": "red"
+                    },
+                    {
+                      "value": 100,
+                      "color": "dark-red"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RAM Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Healthy": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 2
+                      },
+                      "Overallocated": {
+                        "color": "dark-red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total RAM (GB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decgbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Usable RAM (GB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decgbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Allocated RAM (GB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decgbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available RAM (GB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decgbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM host_capacity_metrics) SELECT h.cluster_name AS \"Cluster\", h.compute_name AS \"Compute\", h.total_ram_gb AS \"Total RAM (GB)\", h.reserved_ram_gb AS \"Reserved RAM (GB)\", h.usable_ram_gb AS \"Usable RAM (GB)\", h.allocated_ram_gb AS \"Allocated RAM (GB)\", h.available_ram_gb AS \"Available RAM (GB)\", h.ram_used_pct AS \"RAM Used %\", h.ram_status AS \"RAM Status\", h.powered_on_vm_count AS \"Powered-On VMs\" FROM host_capacity_metrics h JOIN latest l ON h.snapshot_ts_utc = l.ts WHERE h.cluster_name IN (${cluster:sqlstring}) ORDER BY h.cluster_name, h.compute_name;",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Datastore Summary (all datastores \u2013 not cluster-scoped)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "pluginVersion": "12.2.0",
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 12
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Used %",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "green"
+                    },
+                    {
+                      "value": 75,
+                      "color": "orange"
+                    },
+                    {
+                      "value": 90,
+                      "color": "red"
+                    },
+                    {
+                      "value": 100,
+                      "color": "dark-red"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Healthy": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 2
+                      },
+                      "Overallocated": {
+                        "color": "dark-red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Capacity (TB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used (TB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free (TB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT max(snapshot_ts_utc) AS ts FROM datastore_capacity_metrics) SELECT d.datastore_id AS \"Datastore ID\", d.datastore_name AS \"Datastore\", d.type AS \"Type\", d.capacity_tb AS \"Capacity (TB)\", d.used_tb AS \"Used (TB)\", d.free_tb AS \"Free (TB)\", d.used_pct AS \"Used %\", d.status AS \"Status\" FROM datastore_capacity_metrics d JOIN latest l ON d.snapshot_ts_utc = l.ts ORDER BY d.datastore_name;",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "tags": [
+    "vmware",
+    "capacity",
+    "timescaledb",
+    "quickview"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+        },
+        "definition": "SELECT DISTINCT cluster_name FROM cluster_capacity_metrics ORDER BY 1;",
+        "query": "SELECT DISTINCT cluster_name FROM cluster_capacity_metrics ORDER BY 1;",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": null,
+        "options": [],
+        "current": {},
+        "regex": ""
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ]
+  },
+  "timezone": "Asia/Kuala_Lumpur",
+  "title": "VMware Capacity Cluster Quick View",
+  "uid": "vmware-capacity-cluster-quickview",
+  "version": 1,
+  "weekStart": ""
+}

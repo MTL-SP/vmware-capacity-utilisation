@@ -1,4 +1,7 @@
 plan.md
+secrets/
+*_pw.txt
+*password*.txt
 output.txt
 issues/
 .claude/

@@ -6,6 +6,10 @@ This project collects VMware capacity metrics from vCenter and stores daily snap
 - Collector script: `capacityutilization.ps1`
 - DB schema and Timescale policies: `db/init_timescale.sql`
 - One-time DB initializer wrapper: `scripts/init-db.ps1`
+- On-demand refresh button (optional, see [OPTIONAL-FEATURE.md](OPTIONAL-FEATURE.md)):
+  - Migration: `db/add_manual_trigger.sql`, teardown: `db/rollback_manual_trigger.sql`
+  - Apply wrapper: `scripts/apply-manual-trigger.ps1`
+  - Watcher: `scripts/capacity-request-watcher.ps1` + units in `deploy/`
 
 ## 2. Metrics collected
 - Per host CPU and RAM capacity/allocation
@@ -201,3 +205,24 @@ Use your preferred scheduler if not using cron.
 - If run fails, check `capacity_collection_runs.status` and `error_message`.
 - Collector logs per-phase timing with `[Timing] ...` lines for trend tracking.
 - Collector logs row totals with `[Rows] ...` and warns with `[Advice] ...` when row count reaches `BatchingThresholdRows`.
+
+## 12. Deployment paths per site
+
+Everything below is parameterised by `<deployment_path>`; nothing bakes a path in.
+
+| Site | `<deployment_path>` |
+|------|---------------------|
+| Site A | `/var/www/vmware-capacity` |
+| Site B | `/opt/vmware-capacity` |
+
+Both sites: Ubuntu 24.04, systemd + `pwsh`, with the collector, PostgreSQL and Grafana 12.2.0
+on the same server. Config and secrets live in `<deployment_path>/secrets/` at `chmod 600`.
+
+## 13. Optional feature: on-demand capacity refresh button
+
+A one-click **Run capacity collection now** button in Grafana, for engineers who need a fresh
+snapshot before rebalancing VMs by hand. Separate one-time, change-managed install; it does
+not alter the daily collection.
+
+See **[OPTIONAL-FEATURE.md](OPTIONAL-FEATURE.md)** for the DB migration, the watcher and its
+systemd units, the dashboard changes, acceptance tests, the security rationale, and rollback.

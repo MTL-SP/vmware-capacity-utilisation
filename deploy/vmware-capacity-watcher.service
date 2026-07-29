@@ -1,0 +1,25 @@
+[Unit]
+Description=VMware capacity manual-refresh request watcher (one tick)
+Documentation=file:///etc/default/vmware-capacity-watcher
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Set this to the same account that runs the existing daily collector job.
+# systemd does not expand variables in User=, so this is the one line to adjust per site
+# (or override it with a drop-in: systemctl edit vmware-capacity-watcher.service).
+User=vmware-capacity
+# DEPLOY_PATH differs per site (/var/www/vmware-capacity vs /opt/vmware-capacity), so the
+# paths come from the environment file - the unit itself is identical on both sites.
+EnvironmentFile=/etc/default/vmware-capacity-watcher
+# systemd already refuses to overlap a running oneshot; flock is belt-and-braces against a
+# stray manual invocation running at the same time as a timer tick.
+ExecStart=/usr/bin/flock -n /run/lock/vmware-capacity-watcher.lock /usr/bin/pwsh -NoLogo -NonInteractive -File "${DEPLOY_PATH}/scripts/capacity-request-watcher.ps1" -ConfigFile "${CONFIG_FILE}"
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
