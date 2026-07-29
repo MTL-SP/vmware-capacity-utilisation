@@ -19,7 +19,15 @@ ExecStart=/usr/bin/flock -n /run/lock/vmware-capacity-watcher.lock /usr/bin/pwsh
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
+# ProtectHome makes the real home unwritable, but pwsh must create $HOME/.cache/powershell
+# (and .config/.local) at startup or it aborts with a TypeInitializationException. So give it
+# a writable HOME on /run instead of relaxing ProtectHome. Preserve=yes keeps the module
+# analysis cache between ticks rather than rebuilding it every 30s.
 ProtectHome=true
+RuntimeDirectory=vmware-capacity-watcher
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes
+Environment=HOME=/run/vmware-capacity-watcher
 
 [Install]
 WantedBy=multi-user.target

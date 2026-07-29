@@ -183,7 +183,8 @@ systemctl cat vmware-capacity-watcher.service | grep -E '^User=|^ExecStart='
 ```
 
 The shipped unit says `User=vmware-capacity`; the drop-in must win, so the last `User=` printed
-has to be `root`. Site A has no dedicated service account today — the watcher deliberately
+has to be `root`. `User=` is the only thing the drop-in needs — the unit already gives `pwsh` a
+writable `HOME` on `/run`, which it requires under `ProtectHome=true`. Site A has no dedicated service account today — the watcher deliberately
 matches the daily job. Moving both to a non-root account is a sensible follow-up change, not
 part of this one.
 
@@ -329,6 +330,7 @@ Grafana 12.2.0 instance during development — everything else was verified agai
 | Row goes `superseded` unexpectedly | Duplicate click, the `MinIntervalMinutes` debounce, or an in-flight `running` run. The `note` column says which |
 | Every request `superseded` with "already running" | A crashed collector left `status = 'running'`. `InFlightTimeoutMinutes` (120) clears it automatically; to unblock sooner, fix that row's status |
 | `psql: permission denied` reading the migration during Phase 1.2 | You used `-f` instead of the stdin redirect — see the note in 1.2 |
+| Service exits 134 with `TypeInitializationException ... Read-only file system : '/root/.cache'` | `ProtectHome=true` leaves `pwsh` no writable `$HOME`. The shipped unit now sets `RuntimeDirectory` + `Environment=HOME=/run/vmware-capacity-watcher`; if your installed copy predates that, re-install the unit from `deploy/` or add those lines to the drop-in |
 
 Day-to-day queries:
 
