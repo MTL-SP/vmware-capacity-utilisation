@@ -288,9 +288,11 @@ These thresholds also drive the colour cues in Grafana.
 
 ## 8. The Grafana dashboards
 
-> **Live test-lab dashboard:** <http://192.168.80.16:3000/d/cap0v/vmware-capacity-overview?orgId=1&from=now-30d&to=now&timezone=Asia%2FKuala_Lumpur&var-vcenter=vcenter.nimbus.testpod.lan&var-cluster=testlab-cluster&var-host=192.168.99.147&var-datastore=DS-SOURCE&refresh=5m>
-> Opens the Overview board pre-filtered to the test cluster, last 30 days, refreshing every 5 min.
-> You must be on the lab network/VPN to reach `192.168.80.16:3000`.
+> **Live test-lab dashboard:** `http://LAB_GRAFANA_URL/d/cap0v/vmware-capacity-overview?orgId=1&from=now-30d&to=now&timezone=Asia%2FKuala_Lumpur&refresh=5m`
+> Opens the Overview board for the last 30 days, refreshing every 5 min. Pick vCenter,
+> cluster, host and datastore from the dropdowns once it loads.
+> Substitute `LAB_GRAFANA_URL` with your lab Grafana host:port - it is deliberately not
+> stored in this repo - and be on the lab network/VPN to reach it.
 
 Two dashboards read live from PostgreSQL:
 
