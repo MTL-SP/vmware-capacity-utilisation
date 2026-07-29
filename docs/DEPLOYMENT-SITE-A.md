@@ -1,8 +1,9 @@
 # Deployment runbook: on-demand capacity refresh button — Site A
 
 Concrete, copy-pasteable steps for **Site A only**. Every path and account below was verified
-against the live host, so there are no placeholders to substitute. For the parameterised
-version (and the rationale behind each control) see [OPTIONAL-FEATURE.md](../OPTIONAL-FEATURE.md).
+against the live host. The one value left as a placeholder is `<GRAFANA_URL>`, deliberately
+kept out of the repo - substitute it from the table below. For the parameterised version (and
+the rationale behind each control) see [OPTIONAL-FEATURE.md](../OPTIONAL-FEATURE.md).
 
 Run everything as `root` unless a command says otherwise.
 
@@ -17,6 +18,7 @@ Run everything as `root` unless a command says otherwise.
 | Watcher runs as | `root` — same account as the daily job |
 | OS / stack | Ubuntu 24.04, systemd + `pwsh`, collector + PostgreSQL + Grafana 12.2.0 co-located |
 | DB owner | `postgres`; `vmware_collector` has **no** `CREATEROLE` |
+| `<GRAFANA_URL>` | The Grafana origin that matches `root_url` in `/etc/grafana/grafana.ini` — read it with `grep '^\s*root_url' /etc/grafana/grafana.ini`. The button only works on this origin; browsing the server IP over VPN fails |
 
 That last row is why the migration is applied as the `postgres` OS user over the Unix socket
 (peer auth, no password needed) rather than through `scripts/apply-manual-trigger.ps1`. The
@@ -277,8 +279,8 @@ but get no action.
 
 ## Phase 5 — Acceptance tests
 
-Use `https://dashboard.nimbus.my` for all of these. The button does not work when Grafana is
-browsed on the server IP over VPN - see the troubleshooting table.
+Use `<GRAFANA_URL>` for all of these. The button does not work when Grafana is browsed on the
+server IP over VPN - see the troubleshooting table.
 
 1. **Single click.** Click the green **Run capacity collection now** element, then the action in
    the tooltip, then confirm. A new `pending` row appears with `requested_by` = your Grafana
@@ -352,7 +354,7 @@ It passed on 2026-07-29, so the mechanism is now proven end to end on this host.
 | Symptom | Cause / fix |
 |---|---|
 | The element drags instead of clicking, no action menu appears | Inline editing is on for that panel. Edit panel -> Canvas -> Inline editing -> off |
-| CORS error in the browser console plus `401` on `/api/ds/query` | Grafana is being browsed on the server IP over VPN instead of `https://dashboard.nimbus.my`. The action builds its own request, so a mismatched origin sends no session cookie. Other panels still work on that origin, which makes it look like a button fault |
+| CORS error in the browser console plus `401` on `/api/ds/query` | Grafana is being browsed on the server IP over VPN instead of `<GRAFANA_URL>`. The action builds its own request, so a mismatched origin sends no session cookie. Other panels still work on that origin, which makes it look like a button fault |
 | Nothing happens on click, `405` on `/api/ds/query` in the browser network tab | Phase 4.2 not applied or Grafana not restarted |
 | `400` on `/api/ds/query` with `status_source=downstream` and nothing in the Postgres log | The SQL never reached Postgres. Check the request payload in the browser network tab: a `${DS_CAPACITY_TRIGGER}` placeholder left un-substituted means the datasource input was not mapped at import |
 | No action offered on click at all | User lacks Edit permission on the dashboard (Phase 4.4) |
