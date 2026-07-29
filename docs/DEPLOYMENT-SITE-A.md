@@ -277,9 +277,13 @@ but get no action.
 
 ## Phase 5 — Acceptance tests
 
-1. **Single click.** Click the green **Run capacity collection now** button, confirm the modal.
-   A new `pending` row appears with `requested_by` = your Grafana login. Watch the status panel
-   go `pending → claimed → done` within roughly a minute plus collection time.
+Use `https://dashboard.nimbus.my` for all of these. The button does not work when Grafana is
+browsed on the server IP over VPN - see the troubleshooting table.
+
+1. **Single click.** Click the green **Run capacity collection now** element, then the action in
+   the tooltip, then confirm. A new `pending` row appears with `requested_by` = your Grafana
+   login. Watch the status panel go `pending → claimed → done` within roughly a minute plus
+   collection time. **Verified 2026-07-29.**
 
    ```bash
    journalctl -u vmware-capacity-watcher.service -f
@@ -312,9 +316,9 @@ but get no action.
 6. **Daily job unchanged.** `sudo crontab -l` still shows the single `0 13 * * *` entry, and
    the next nightly run lands normally.
 
-The button click in step 1 is the only part of this feature never exercised against a live
-Grafana 12.2.0 instance during development — everything else was verified against the upstream
-12.2.0 source. Treat step 1 as the real gate.
+Step 1 was the only part of this feature never exercised against a live Grafana 12.2.0
+instance during development; everything else was verified against the upstream 12.2.0 source.
+It passed on 2026-07-29, so the mechanism is now proven end to end on this host.
 
 ---
 
@@ -322,7 +326,10 @@ Grafana 12.2.0 instance during development — everything else was verified agai
 
 | Symptom | Cause / fix |
 |---|---|
+| The element drags instead of clicking, no action menu appears | Inline editing is on for that panel. Edit panel -> Canvas -> Inline editing -> off |
+| CORS error in the browser console plus `401` on `/api/ds/query` | Grafana is being browsed on the server IP over VPN instead of `https://dashboard.nimbus.my`. The action builds its own request, so a mismatched origin sends no session cookie. Other panels still work on that origin, which makes it look like a button fault |
 | Nothing happens on click, `405` on `/api/ds/query` in the browser network tab | Phase 4.2 not applied or Grafana not restarted |
+| `400` on `/api/ds/query` with `status_source=downstream` and nothing in the Postgres log | The SQL never reached Postgres. Check the request payload in the browser network tab: a `${DS_CAPACITY_TRIGGER}` placeholder left un-substituted means the datasource input was not mapped at import |
 | No action offered on click at all | User lacks Edit permission on the dashboard (Phase 4.4) |
 | Error or empty-result toast after confirming | Expected: `grafana_trigger` has no `SELECT`, so the `INSERT` cannot use `RETURNING` and Grafana gets an empty frame. The status panel is the source of truth |
 | Row stays `pending` | Timer not running: `systemctl list-timers`, `journalctl -u vmware-capacity-watcher.service` |

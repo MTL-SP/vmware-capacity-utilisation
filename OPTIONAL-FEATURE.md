@@ -148,6 +148,16 @@ pwsh "$DEPLOY_PATH/scripts/capacity-request-watcher.ps1" \
    `__inputs` placeholders, so each site resolves its own UIDs - no UID is hardcoded.
 4. Users need **Edit permission on this dashboard**; Grafana gates canvas actions on
    `canEditDashboard()`, so Viewer-only users see no button action.
+5. **Tell engineers to use the URL that matches Grafana's `root_url`.** The action builds
+   its own request, so on any other origin (a bare server IP over VPN, for example) it is
+   cross-origin with no session cookie: the browser reports a CORS error and Grafana logs
+   `401`. Ordinary panels still work on that origin, which makes the failure look like a
+   button bug. If both access paths must work, point split DNS at the internal address for
+   the same hostname rather than handing out an IP.
+
+Clicking it: click the green element, then the action in the tooltip, then confirm. If the
+element drags instead of clicking, inline editing has been switched back on for that panel
+(Edit panel -> Canvas -> Inline editing).
 
 Dashboard changes in that file, everything else preserved (panels, `$cluster` variable,
 tags, timezone, layout):
@@ -181,9 +191,18 @@ Verified against the Grafana 12.2.0 source before choosing it:
   (`frames = scene?.data?.series`), so the canvas panel carries a trivial `SELECT 1 AS ok;`
   query on the read datasource.
 
-Not verified here: no Grafana 12.2.0 instance was available in this working copy, so the
-click has not been exercised against a live server. Run the section 8 functional tests at
-first install; if the row does not appear, the fallback below is the documented alternative.
+Verified working on a live Grafana 12.2.0 instance at Site A: the click inserts the row
+and the watcher completes the run. Two things bit us getting there, both covered in
+section 6:
+
+- The canvas panel ships with **inline editing off**. With it on, a user holding Edit
+  rights drags the element instead of clicking it, and the action never fires.
+- Grafana must be browsed on the **origin matching its `root_url`**. On any other
+  hostname or IP the action's request is cross-origin and unauthenticated, so it fails
+  with a CORS error and `401` while ordinary panels keep working.
+
+If the row still does not appear after checking both, the fallback below is the
+documented alternative.
 
 Because `grafana_trigger` has no `SELECT` privilege, the `INSERT` cannot use `RETURNING`, so
 Grafana gets an empty result back. An empty-result or error toast may appear even though the
