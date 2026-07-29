@@ -83,7 +83,7 @@ function Invoke-PsqlRows {
             -U $PGUsername `
             -d $PGDatabase `
             -v ON_ERROR_STOP=1 `
-            -At -F '|' `
+            -q -At -F '|' `
             -f $sqlFile
         if ($LASTEXITCODE -ne 0) {
             throw "psql command failed with exit code $LASTEXITCODE"
@@ -162,15 +162,17 @@ RETURNING request_id::text, coalesce(requested_by, '');
     }
 
     $fields = $claimed[0].Split('|')
-    $requestId = $fields[0]
+    $claimedId = $fields[0]
     $requestedBy = if ($fields.Count -gt 1) { $fields[1] } else { "" }
 
     # request_id is the only request-row value interpolated into later SQL, so it is
-    # validated here. requested_by/vcenter_name/note are attacker-controllable text from
-    # the button role and are never interpolated.
-    if ($requestId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
-        throw "Claimed request_id is not a uuid: $requestId"
+    # validated before $requestId is set - otherwise the catch block would go on to build
+    # SQL from the bad value. requested_by/vcenter_name/note are attacker-controllable
+    # text from the button role and are never interpolated.
+    if ($claimedId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+        throw "Claimed request_id is not a uuid: $claimedId"
     }
+    $requestId = $claimedId
     Write-WatcherLog ("Claimed request {0} (requested_by={1})" -f $requestId, $requestedBy)
 
     # 3. Collapse duplicates, then debounce.
