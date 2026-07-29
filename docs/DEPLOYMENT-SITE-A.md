@@ -296,15 +296,40 @@ browsed on the server IP over VPN - see the troubleshooting table.
 3. **Debounce.** Click again immediately after a successful run. The row should end
    `superseded` with `not launched: a collection succeeded within the last 2 minute(s)`.
 
-4. **Forced failure.** Copy the config, point `VCServer` at an unreachable host, run one tick
-   against the copy, and confirm the request goes to `failed` and the status panel turns red:
+4. **Forced failure.** Confirm a broken collector lands the request as `failed` rather than
+   leaving it stuck at `claimed`. Two things will make this test lie to you: the enabled timer
+   will claim the row with the good config and succeed, and the `MinIntervalMinutes` debounce
+   will supersede anything queued within 2 minutes of test 2/3's successful run.
 
    ```bash
-   cp /var/www/vmware-capacity/collector-config.psd1 /root/cfg-fail-test.psd1
-   # edit VCServer in the copy, then insert a request as grafana_trigger and:
-   pwsh /var/www/vmware-capacity/scripts/capacity-request-watcher.ps1 -ConfigFile /root/cfg-fail-test.psd1
+   DEPLOY=/var/www/vmware-capacity
+
+   # Needs to read > 2 minutes before you continue
+   sudo -u postgres psql -d vmware_capacity -At -c \
+     "select now() - max(completed_at_utc) from capacity_collection_runs where status='success';"
+
+   systemctl stop vmware-capacity-watcher.timer
+
+   umask 077
+   cp "$DEPLOY/collector-config.psd1" /root/cfg-fail-test.psd1
+   sed -i 's#^\s*VCServer\s*=.*#    VCServer = "vcenter-does-not-exist.invalid"#' /root/cfg-fail-test.psd1
+
+   PGPASSWORD=$(cat "$DEPLOY/secrets/grafana_trigger_pw.txt") \
+     psql -h localhost -U grafana_trigger -d vmware_capacity \
+     -c "INSERT INTO capacity_run_requests (requested_by, note) VALUES ('failtest','forced failure test');"
+
+   pwsh "$DEPLOY/scripts/capacity-request-watcher.ps1" -ConfigFile /root/cfg-fail-test.psd1
+   echo "watcher exit=$?"      # 1 is correct - a failed collection is a failed tick
+
    shred -u /root/cfg-fail-test.psd1
+   systemctl start vmware-capacity-watcher.timer
    ```
+
+   Only `VCServer` changes, so the copy's DB and secret paths stay valid and the watcher can
+   still record the outcome. `.invalid` is reserved and never resolves, so the connect fails
+   immediately - though PowerCLI still takes ~30s to import first. Expect the request at
+   `failed`, the matching `capacity_collection_runs` row at `failed` with `error_message` set,
+   and a red status panel.
 
 5. **No secrets committed.**
 
