@@ -44,31 +44,89 @@ into that site's write-scoped Grafana datasource (Grafana encrypts it at rest).
 
 ## 3. Apply the migration (one-time, change-managed)
 
-Run through the existing one-time DB-apply path - **not** from the daily job. The migration
-creates a login role, so run it as a role with `CREATEROLE` or as the DB superuser
-(`postgres`); `vmware_collector` alone is usually not enough.
+Run through the existing one-time DB-apply path - **not** from the daily job.
+
+First, the button role password. This is the same on either route:
 
 ```bash
 DEPLOY_PATH=/opt/vmware-capacity           # Site A: /var/www/vmware-capacity
+SECRETS_DIR="$DEPLOY_PATH/secrets"         # wherever PGPasswordFile in your .psd1 points
 
-# 1. Generate and store the button role password
-openssl rand -base64 32 | tr -d '\n=' > "$DEPLOY_PATH/secrets/grafana_trigger_pw.txt"
-chmod 600 "$DEPLOY_PATH/secrets/grafana_trigger_pw.txt"
+umask 077
+openssl rand -base64 32 | tr -d '\n=' > "$SECRETS_DIR/grafana_trigger_pw.txt"
+chmod 600 "$SECRETS_DIR/grafana_trigger_pw.txt"
+```
 
-# 2. Apply the migration
+Base64 output contains no quote or backslash, so it passes through `psql` and into the Grafana
+datasource field unescaped.
+
+The migration creates a login role and grants `USAGE ON SCHEMA public`, so it needs
+`CREATEROLE` **and** schema ownership. Check whether the collector role already has both:
+
+```bash
+PGPASSWORD=$(cat "$SECRETS_DIR/pg_password.txt") \
+psql -h localhost -U vmware_collector -d vmware_capacity \
+  -c "select rolcreaterole, rolsuper from pg_roles where rolname = current_user;" \
+  -c "select pg_get_userbyid(datdba) as db_owner from pg_database where datname = current_database();"
+```
+
+### 3a. If `rolcreaterole = t` and `db_owner = vmware_collector`
+
+Use the wrapper with the collector's own password file:
+
+```bash
 pwsh "$DEPLOY_PATH/scripts/apply-manual-trigger.ps1" \
-  -PGHost localhost \
-  -PGPort 5432 \
-  -PGDatabase vmware_capacity \
-  -PGUsername postgres \
-  -PGPasswordFile "$DEPLOY_PATH/secrets/pg_admin_password.txt" \
-  -TriggerPasswordFile "$DEPLOY_PATH/secrets/grafana_trigger_pw.txt"
+  -PGHost localhost -PGPort 5432 -PGDatabase vmware_capacity \
+  -PGUsername vmware_collector \
+  -PGPasswordFile "$SECRETS_DIR/pg_password.txt" \
+  -TriggerPasswordFile "$SECRETS_DIR/grafana_trigger_pw.txt"
 ```
 
 The wrapper hands the password to `psql` through a private temp file rather than `-v` on the
 command line, so it never appears in the process list. It rejects passwords containing `'`
-or `\`. Re-running the migration is safe and never rotates an existing password - to rotate,
-run `ALTER ROLE grafana_trigger PASSWORD '<new>';` and update the Grafana datasource.
+or `\`.
+
+### 3b. Otherwise - the usual case on a stock install
+
+A default install has the database owned by `postgres` and no admin password file anywhere,
+so there is nothing for the wrapper to authenticate with. Run the migration as the `postgres`
+OS user over the Unix socket instead, where peer auth needs no password. Root reads the
+secret and pipes it in, so the password never lands in `ps` and the file stays `600`
+root-only:
+
+```bash
+umask 077
+{ printf "\\set grafana_trigger_pw '"
+  tr -d '\n' < "$SECRETS_DIR/grafana_trigger_pw.txt"
+  printf "'\n\\i $DEPLOY_PATH/db/add_manual_trigger.sql\n"
+} > /root/mt-apply.sql
+
+sudo -u postgres psql -v ON_ERROR_STOP=1 -d vmware_capacity < /root/mt-apply.sql
+
+shred -u /root/mt-apply.sql
+```
+
+Do **not** "simplify" the redirect to `-f /root/mt-apply.sql`: `psql` opens `-f` files itself,
+as `postgres`, and cannot read anything under `/root`. The stdin redirect is opened by root's
+shell, which is the whole point. Check first that `postgres` can read the migration:
+
+```bash
+sudo -u postgres test -r "$DEPLOY_PATH/db/add_manual_trigger.sql" && echo readable
+```
+
+### 3c. Either route
+
+Expect `CREATE ROLE`, `CREATE TABLE`, `COMMENT`, `CREATE INDEX` and several `GRANT` lines,
+exit 0. Re-running is safe and never rotates an existing password - to rotate, run
+`ALTER ROLE grafana_trigger PASSWORD '<new>';` and update the Grafana datasource. Verify:
+
+```bash
+sudo -u postgres psql -d vmware_capacity -c "\dp capacity_run_requests"
+```
+
+`grafana_trigger` must show `INSERT` on `requested_by`, `vcenter_name`, `note` and nothing
+else; `vmware_collector` must have `SELECT` and `UPDATE`. Run the section 8 least-privilege
+tests now, while you are at a `psql` prompt - that transcript is the ISO evidence.
 
 On PostgreSQL 15+ (Ubuntu 24.04 ships 16) the `public` schema no longer grants `CREATE` to
 `PUBLIC`, so `grafana_trigger` cannot create objects of its own. On PG14 or older, confirm
@@ -76,8 +134,9 @@ the collector role owns the schema and then run `REVOKE CREATE ON SCHEMA public 
 
 ## 4. Add config keys
 
-Add to the collector config `.psd1` at `<deployment_path>/secrets/` (see
-`collector-config.sample.psd1`) - all optional, defaults shown:
+Add to the collector config `.psd1` the daily job already uses - confirm the exact path with
+`sudo crontab -l` rather than assuming, since it varies (the sample puts it under
+`secrets/`, Site A keeps it at the deployment root). All optional, defaults shown:
 
 - `MinIntervalMinutes = 2` - debounce: skip a request if a run already succeeded that recently.
 - `InFlightTimeoutMinutes = 120` - how long a `running` run blocks manual runs before it is
@@ -89,12 +148,14 @@ Add to the collector config `.psd1` at `<deployment_path>/secrets/` (see
 ```bash
 DEPLOY_PATH=/opt/vmware-capacity           # Site A: /var/www/vmware-capacity
 
-# Per-site paths: the only file that differs between sites
+# Per-site paths: the only file that differs between sites.
+# CONFIG_FILE must match the -ConfigFile the daily cron job passes - check `sudo crontab -l`.
+CONFIG_FILE=$DEPLOY_PATH/secrets/collector-config.psd1
+
 sudo install -m 644 "$DEPLOY_PATH/deploy/vmware-capacity-watcher.env.sample" \
   /etc/default/vmware-capacity-watcher
 sudo sed -i "s#^DEPLOY_PATH=.*#DEPLOY_PATH=$DEPLOY_PATH#" /etc/default/vmware-capacity-watcher
-sudo sed -i "s#^CONFIG_FILE=.*#CONFIG_FILE=$DEPLOY_PATH/secrets/collector-config.psd1#" \
-  /etc/default/vmware-capacity-watcher
+sudo sed -i "s#^CONFIG_FILE=.*#CONFIG_FILE=$CONFIG_FILE#" /etc/default/vmware-capacity-watcher
 
 # Units are identical on both sites
 sudo install -m 644 "$DEPLOY_PATH/deploy/vmware-capacity-watcher.service" \
@@ -119,8 +180,7 @@ Run one tick by hand while testing:
 ```bash
 sudo systemctl start vmware-capacity-watcher.service
 # or, without systemd:
-pwsh "$DEPLOY_PATH/scripts/capacity-request-watcher.ps1" \
-  -ConfigFile "$DEPLOY_PATH/secrets/collector-config.psd1"
+pwsh "$DEPLOY_PATH/scripts/capacity-request-watcher.ps1" -ConfigFile "$CONFIG_FILE"
 ```
 
 `-SelfTest` runs the debounce-decision assertions and exits without touching the DB.
@@ -336,11 +396,12 @@ grafana/vmware-capacity-cluster-quickview.json`) and delete the `capacity-trigge
 datasource. Then drop the DB objects:
 
 ```bash
-pwsh "$DEPLOY_PATH/scripts/apply-manual-trigger.ps1" \
-  -PGHost localhost -PGPort 5432 -PGDatabase vmware_capacity \
-  -PGUsername postgres -PGPasswordFile "$DEPLOY_PATH/secrets/pg_admin_password.txt" \
-  -SqlFile "$DEPLOY_PATH/db/rollback_manual_trigger.sql"
+sudo -u postgres psql -v ON_ERROR_STOP=1 -d vmware_capacity \
+  < "$DEPLOY_PATH/db/rollback_manual_trigger.sql"
 ```
+
+(Or through `scripts/apply-manual-trigger.ps1 -SqlFile db/rollback_manual_trigger.sql`, omitting
+`-TriggerPasswordFile`, if you took route 3a and have a password file to authenticate with.)
 
 Finally delete `<deployment_path>/secrets/grafana_trigger_pw.txt` and remove the
 `actions_allow_post_url` line from `grafana.ini`. Nothing created by
