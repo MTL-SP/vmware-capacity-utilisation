@@ -226,3 +226,6 @@ not alter the daily collection.
 
 See **[OPTIONAL-FEATURE.md](OPTIONAL-FEATURE.md)** for the DB migration, the watcher and its
 systemd units, the dashboard changes, acceptance tests, the security rationale, and rollback.
+
+Site A has a concrete, no-placeholder runbook:
+**[docs/DEPLOYMENT-SITE-A.md](docs/DEPLOYMENT-SITE-A.md)**.
