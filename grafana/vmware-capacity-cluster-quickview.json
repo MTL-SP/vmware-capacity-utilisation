@@ -101,7 +101,7 @@
         "h": 5
       },
       "options": {
-        "inlineEditing": true,
+        "inlineEditing": false,
         "showAdvancedTypes": true,
         "panZoom": false,
         "infinitePan": false,
